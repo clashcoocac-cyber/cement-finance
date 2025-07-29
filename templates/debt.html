@@ -32,8 +32,27 @@
     </div>
 
     <!-- Debt Payments History -->
-    <div class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
-        <h3 class="text-2xl font-bold text-gray-800 mb-8">Qarz To'lovlari Tarixi</h3>
+    <div id="invoice" class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
+        <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800">Qarz To'lovlari Tarixi</h3>
+                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Hisobotni Yuklash</button>
+                </div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mijoz bo'yicha</label>
+                        <select id="filterDebtClient" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
+                            <option value="">Barcha mijozlar</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sana (dan)</label>
+                        <input type="date" id="filterDebtDateFrom" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sana (gacha)</label>
+                        <input type="date" id="filterDebtDateTo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
+                    </div>
+                </div>
         <div class="overflow-x-auto">
             <table class="w-full table-auto">
                 <thead class="bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl">
@@ -49,7 +68,7 @@
             <tr>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.paid_at | date:"Y-m-d" }}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.customer.name }}</td>
-                <td class="px-6 py-4 text-sm text-green-600 font-semibold">{{ payment.amount | format_currency }} so'm</td>
+                <td class="px-6 py-4 text-sm text-green-600 font-medium">{{ payment.amount | format_currency }} so'm</td>
                 <td class="px-6 py-4 text-sm text-gray-500">{{ payment.paid_at | time:"H:i" }}</td>
             </tr>
             {% endfor %}
@@ -59,9 +78,43 @@
                         </tr>
                     {% endif %}
         </tbody>
+        <tfoot class="bg-gradient-to-r from-green-100 to-emerald-100">
+                            <tr>
+                                <td colspan="2" class="px-6 py-5 text-sm font-bold text-gray-800">JAMI:</td>
+                                <td class="px-6 py-5 text-sm font-bold text-green-600" id="totalDebtPayments">{{ total_amount | format_currency }} so'm</td>
+                                <td class="px-6 py-5 text-sm font-bold text-gray-800"></td>
+                            </tr>
+                        </tfoot>
             </table>
         </div>
     </div>
 </div>
+
+<script>
+    function generatePDF() {
+    const element = document.getElementById("invoice");
+
+    const opt = {
+        margin:       0,
+        filename:     'document.pdf',
+        image:        { type: 'jpeg', quality: 1 },
+        html2canvas:  {
+            scale: 2,
+            useCORS: true, // agar rasm bo'lsa
+            logging: true,
+            scrollY: 0, // skrollni hisobga olmasin
+            windowWidth: document.body.scrollWidth,
+            windowHeight: document.body.scrollHeight,
+        },
+        jsPDF:        {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'landscape' // <-- bu albom ko‘rinish uchun
+        }
+    };
+        html2pdf().set(opt).from(element).save();
+}
+</script>
+
 {% endblock %}
    

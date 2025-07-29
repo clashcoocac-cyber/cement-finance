@@ -11,16 +11,17 @@
                     <div class="lg:col-span-2">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Mijoz</label>
-                                <select id="clientSelect" name="customer_id" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm">
-                                    <option value="">Mijozni tanlang</option>
-                                    {% for customer in customers %}
-                                        <option value="{{ customer.id }}">{{ customer.name }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Mijoz</label>
+                                <div class="relative">
+                                    <input type="text" required id="clientSearch" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm" placeholder="Mijoz qidirish..." oninput="searchClients()" onfocus="showClientDropdown()" onblur="hideClientDropdown()">
+                                    <div id="clientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                                        <!-- Client options will be populated here -->
+                                    </div>
+                                </div>
+                                <input type="hidden" name="customer_id" id="selectedClientId" value="">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Sement Turi</label>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Sement Turi</label>
                                 <select id="cementSelect" name="cement_type_id" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm">
                                     <option value="">Sement turini tanlang</option>
                                     {% for cement_type in cement_types %}
@@ -29,23 +30,23 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Miqdori (tonna)</label>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Miqdori (kg)</label>
                                 <input onchange="calculateTotal()" name="quantity" required type="number" id="quantity" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Narxi (so'm/tonna)</label>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Narxi (so'm/kg)</label>
                                 <input onchange="calculateTotal()" name="price_per_ton" required type="number" id="price" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Yo'l Xarajati</label>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Yo'l Xarajati</label>
                                 <input type="number" id="transportCost" name="road_cost" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Olingan Pul</label>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Olingan Pul</label>
                                 <input type="number" id="paidAmount" name="paid_amount" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Mashina Raqami</label>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Mashina Raqami</label>
                                 <input type="text" id="carNumber" name="car_number" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="01A123BC">
                             </div>
                         </div>
@@ -56,11 +57,11 @@
                         <div class="bg-gray-50 rounded-xl p-6 space-y-4">
                             <h3 class="text-lg font-bold text-gray-800 mb-4">Hisob-kitob</h3>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Jami Summa</label>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Jami Summa</label>
                                 <input type="number" id="grandTotal" class="py-3 w-full p-4 border border-blue-300 rounded-xl bg-blue-50 text-blue-800 font-bold shadow-sm text" readonly>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-800 mb-3">Qolgan Qarz</label>
+                                <label class="block text-sm font-medium text-gray-800 mb-3">Qolgan Qarz</label>
                                 <input type="number" id="remainingDebt" class="py-3 w-full p-4 border border-red-300 rounded-xl bg-red-50 text-red-800 font-bold shadow-sm text" readonly>
                             </div>
                             <div class="pt-4">
@@ -89,7 +90,7 @@
                         <select onchange="setFilter()" id="filterCement" class="text-sm py-3 w-full p-4 border-2 border-white/30 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/50 backdrop-blur-sm transition-all duration-300 font-medium" onchange="filterOrders()">
                             <option value="">Barcha turlar</option>
                             {% for cement_type in cement_types %}
-                                <option value="{{ cement_type.id }}" {% if request.GET.cement_type_id == cement_type.id|slugify %}selected{%endif %}>{{ cement_type.name }}</option>
+                                <option value="{{ cement_type.id }}" {% if request.GET.cement_type_id == cement_type.id|slugify %}selected{%endif %}>{{ cement_type.name }} {{ cement_type.color }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -105,10 +106,10 @@
             </div>
 
             <!-- Orders List -->
-            <div class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
-                <div class="flex justify-between items-center mb-8">
+            <div id="invoice" class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
+                <div id="orderList" class="flex justify-between items-center mb-8">
                     <h3 class="text-2xl font-bold text-gray-800">Buyurtmalar Ro'yxati</h3>
-                    <button onclick="downloadReport()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-8 py-4 rounded-2xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105">Hisobotni Yuklash</button>
+                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-8 py-4 rounded-2xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105">Hisobotni Yuklash</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto">
@@ -117,9 +118,10 @@
                                 <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana</th>
                                 <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Mijoz</th>
                                 <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Sement Turi</th>
-                                <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Miqdori</th>
                                 <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Mashina</th>
-                                <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Narxi</th>
+                                <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Miqdori (kg)</th>
+                                <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Narxi (so'm/kg)</th>
+                                <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Yo'l Xarajati</th>
                                 <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Jami</th>
                                 <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Olingan</th>
                                 <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Qarz</th>
@@ -136,16 +138,19 @@
                                         {{ order.customer.name }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                        {{ order.cement_type.name }}
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-900">
-                                        {{ order.quantity }}
+                                        {{ order.cement_type.name }} {{ order.cement_type.color }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ order.car_number }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                        {{ order.total_price | format_currency }}
+                                        {{ order.quantity|format_currency }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                        {{ order.price_per_kg|format_currency }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                        {{ order.road_cost }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ order.total_sum | format_currency }}
@@ -153,7 +158,7 @@
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ order.paid_amount | format_currency }}
                                     </td>
-                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                    <td class="px-4 py-3 text-sm text-red-700">
                                         {{ order.remaining_debt | format_currency }}
                                     </td>
                                     <!-- <td class="px-4 py-3 text-sm">
@@ -162,13 +167,24 @@
                                 </tr>
                             {% endfor %}
                         </tbody>
+                        <tfoot class="bg-gradient-to-r from-blue-100 to-indigo-100">
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-sm font-bold text-gray-800">JAMI:</td>
+                                <td class="px-4 py-4 text-sm font-bold text-blue-600" id="totalQuantitySum"></td>
+                                <td class="px-4 py-4 text-sm font-bold text-gray-800">{{total_quantity | format_currency}}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-gray-800"></td>
+                                <td class="px-4 py-4 text-sm font-bold text-blue-600" id="totalTransportSum"></td>
+                                <td class="px-4 py-4 text-sm font-bold text-green-600" id="totalGrandSum">{{total_price| format_currency}}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-green-600" id="totalPaidSum">{{total_paid_amount|format_currency}}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-red-600" id="totalDebtSum">{{ total_debt | format_currency }}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
         </div>
 
     </div>
-
     <script>
 
         // Calculate totals
@@ -200,7 +216,87 @@
 
             window.location.search = urlParams.toString();
         }
+        let clients = [
+            {% for customer in customers %}
+            {'id': '{{ customer.id }}', 'name': '{{ customer.name }}', 'phone': '{{ customer.phone }}'},
+            {% endfor %}
+        ]
+
+        function searchClients() {
+            const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
+            const dropdown = document.getElementById('clientDropdown');
+            
+            if (searchTerm.length === 0) {
+                dropdown.innerHTML = '';
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) || 
+                client.phone.includes(searchTerm)
+            );
+            
+            dropdown.innerHTML = '';
+            
+            if (filteredClients.length === 0) {
+                dropdown.innerHTML = '<div class="p-3 text-gray-500 text-sm">Mijoz topilmadi</div>';
+            } else {
+                filteredClients.forEach(client => {
+                    const option = document.createElement('div');
+                    option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
+                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.onclick = () => selectClient(client);
+                    dropdown.appendChild(option);
+                });
+            }
+            
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectClient(client) {
+            document.getElementById('clientSearch').value = client.name;
+            document.getElementById('selectedClientId').value = client.id;
+            document.getElementById('clientDropdown').classList.add('hidden');
+        }
+
+        function showClientDropdown() {
+            if (document.getElementById('clientSearch').value.length > 0) {
+                searchClients();
+            }
+        }
+
+        function hideClientDropdown() {
+            setTimeout(() => {
+                document.getElementById('clientDropdown').classList.add('hidden');
+            }, 200);
+        }
+
+
+        function generatePDF() {
+    const element = document.getElementById("invoice");
+
+    const opt = {
+        margin:       0,
+        filename:     'document.pdf',
+        image:        { type: 'jpeg', quality: 1 },
+        html2canvas:  {
+            scale: 2,
+            useCORS: true, // agar rasm bo'lsa
+            logging: true,
+            scrollY: 0, // skrollni hisobga olmasin
+            windowWidth: document.body.scrollWidth,
+            windowHeight: document.body.scrollHeight,
+        },
+        jsPDF:        {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'landscape' // <-- bu albom ko‘rinish uchun
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966aa21fe04a767a',t:'MTc1Mzc3MTMxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
+    
 {% endblock %}

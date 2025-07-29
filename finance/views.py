@@ -2,21 +2,45 @@ from datetime import date
 from django.shortcuts import redirect, render
 from django.db import models
 from django.views import View
+from django.contrib.auth.views import LoginView as LView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from finance.models import Customer, CementType, Order, PaymentHistory
 from finance.filters import OrderFilter
 from finance.forms import CementTypeForm, OrderForm, CustomerForm, PaymentForm
 
 
-class OrderView(View):
+class LoginView(LView):
+    template_name = 'login.html'
+    redirect_authenticated_user = True
+
+
+class LogoutView(View):
+
+    def get(self, request):
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect('login')
+
+
+class OrderView(LoginRequiredMixin, View):
     template_name = 'order.html'
 
     def get(self, request):
-        orders = Order.objects.order_by('-order_date')
+        filtered_orders = OrderFilter(request.GET, queryset=Order.objects.order_by('-order_date')).qs
+        total_quantity = filtered_orders.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+        total_price = filtered_orders.aggregate(models.Sum('total_sum'))['total_sum__sum'] or 0
+        total_paid_amount = filtered_orders.aggregate(models.Sum('paid_amount'))['paid_amount__sum'] or 0
+        total_debt = filtered_orders.aggregate(models.Sum('remaining_debt'))['remaining_debt__sum'] or 0
+
         return render(request, self.template_name, context={
-            'orders': OrderFilter(request.GET, queryset=orders).qs,
+            'orders': filtered_orders,
             'customers': Customer.objects.all(),
             'cement_types': CementType.objects.all(),
             'today': date.today().strftime('%Y-%m-%d'),
+            'total_quantity': total_quantity,
+            'total_price': total_price,
+            'total_paid_amount': total_paid_amount,
+            'total_debt': total_debt,
             'page': 'dashboard',
         })
     
@@ -28,7 +52,7 @@ class OrderView(View):
         return redirect('dashboard') 
 
 
-class CustomerView(View):
+class CustomerView(LoginRequiredMixin, View):
     template_name = 'customer.html'
 
     def get(self, request):
@@ -36,6 +60,7 @@ class CustomerView(View):
         return render(request, self.template_name, context={
             'customers': customers,
             'today': date.today().strftime('%Y-%m-%d'),
+            'total_debt': sum(customer.total_debt for customer in Customer.objects.all()),
             'page': 'customer',
         })
     
@@ -47,7 +72,7 @@ class CustomerView(View):
         return redirect('customer')
 
 
-class DebtView(View):
+class DebtView(LoginRequiredMixin, View):
     template_name = 'debt.html'
 
     def get(self, request):
@@ -55,6 +80,7 @@ class DebtView(View):
         return render(request, self.template_name, context={
             'customers': customers,
             'payments': PaymentHistory.objects.order_by('-paid_at'),
+            'total_amount': sum(payment.amount for payment in PaymentHistory.objects.all()),
             'today': date.today().strftime('%Y-%m-%d'),
             'page': 'debt',
         })
@@ -67,13 +93,16 @@ class DebtView(View):
         return redirect('debts')
 
 
-class CementTypeView(View):
+class CementTypeView(LoginRequiredMixin, View):
     template_name = 'cement_type.html'
 
     def get(self, request):
-        cement_types = CementType.objects.all()
+        cement_types = CementType.objects.annotate(
+            total_quantity=models.Sum('orders__quantity')
+        )
         return render(request, self.template_name, context={
             'cement_types': cement_types,
+            'colors': CementType.ColorChoices,
             'page': 'cement_type',
         })
     
@@ -84,14 +113,14 @@ class CementTypeView(View):
             return redirect('cement_type')
         return redirect('cement_type')
     
-class CementTypeDeleteView(View):
+class CementTypeDeleteView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
         CementType.objects.filter(pk=pk).delete()
         return redirect('cement_type')
     
 
-class StatisticsView(View):
+class StatisticsView(LoginRequiredMixin, View):
     template_name = 'stats.html'
 
     def get(self, request):

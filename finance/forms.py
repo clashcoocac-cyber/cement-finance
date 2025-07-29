@@ -8,7 +8,7 @@ class OrderForm(forms.ModelForm):
 
     class Meta:
         model = Order
-        fields = ['customer_id', 'cement_type_id', 'quantity', 'price_per_ton', 'road_cost', 'paid_amount', 'car_number']
+        fields = ['customer_id', 'cement_type_id', 'quantity', 'price_per_kg', 'road_cost', 'paid_amount', 'car_number']
 
     def save(self, commit = True):
         order = super().save(commit=False)
@@ -53,9 +53,10 @@ class PaymentForm(forms.ModelForm):
 
 
 class CementTypeForm(forms.ModelForm):
+    
     class Meta:
         model = CementType
-        fields = ['name']
+        fields = ['name', 'color']
 
     def save(self, commit=True):
         cement_type = super().save(commit=False)

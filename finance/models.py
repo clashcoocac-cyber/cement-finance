@@ -17,7 +17,15 @@ class Customer(models.Model):
 
 
 class CementType(models.Model):
+
+    class ColorChoices(models.TextChoices):
+        BLUE = '🟦', "🟦 Ko'k"
+        GREEN = '🟩', "🟩 Yashil"
+        RED = "🟥", "🟥 Qizil"
+        YELLOW = "🟨", "🟨 Sariq"
+
     name = models.CharField(max_length=50)
+    color = models.CharField(max_length=10, choices=ColorChoices)
 
     class Meta:
         db_table = 'cement_types'
@@ -32,8 +40,8 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, related_name='orders', null=True)
     cement_type = models.ForeignKey(CementType, on_delete=models.SET_NULL, related_name='orders', null=True)
     
-    quantity = models.FloatField(verbose_name="Quantity (tons)")
-    price_per_ton = models.IntegerField()
+    quantity = models.IntegerField(verbose_name="Quantity (kgs)")
+    price_per_kg = models.IntegerField()
     road_cost = models.IntegerField()
     paid_amount = models.IntegerField()
     car_number = models.CharField(max_length=20)
@@ -49,7 +57,7 @@ class Order(models.Model):
         verbose_name_plural = 'Orders'
 
     def save(self, *args, **kwargs):
-        self.total_price = self.quantity * self.price_per_ton
+        self.total_price = self.quantity * self.price_per_kg
         self.total_sum = self.total_price - self.road_cost
         self.remaining_debt = self.total_sum - self.paid_amount
         super().save(*args, **kwargs)

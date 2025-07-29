@@ -1,10 +1,17 @@
 from django.contrib import admin
 from django.urls import path
-from finance.views import OrderView, CustomerView, DebtView, CementTypeView, StatisticsView, CementTypeDeleteView
+from finance.views import (
+    LoginView, LogoutView,
+    OrderView, CustomerView, DebtView, CementTypeView, StatisticsView, CementTypeDeleteView
+)
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    path('login/', LoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    
     path('', OrderView.as_view(), name='dashboard'),
     path('customer/', CustomerView.as_view(), name='customer'),
     path('debt/', DebtView.as_view(), name='debts'),
