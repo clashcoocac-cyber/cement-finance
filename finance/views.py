@@ -84,6 +84,12 @@ class CementTypeView(View):
             return redirect('cement_type')
         return redirect('cement_type')
     
+class CementTypeDeleteView(View):
+
+    def post(self, request, pk):
+        CementType.objects.filter(pk=pk).delete()
+        return redirect('cement_type')
+    
 
 class StatisticsView(View):
     template_name = 'stats.html'

@@ -30,7 +30,10 @@
                                 <tr>
                         <td class="px-4 py-3 text-sm text-gray-900">{{ cement_type.name }}</td>
                         <td class="px-4 py-3 text-sm">
-                            <button onclick="deleteCementType(1)" class="text-red-600 hover:text-red-800">O'chirish</button>
+                            <form action="{% url 'cement_type_delete' cement_type.id %}" method="POST">
+                                {% csrf_token %}
+                            <button type="submit" onclick="return confirm('Rostan ham o\'chirmoqchimisiz?')" class="text-red-600 hover:text-red-800">O'chirish</button>
+                        </form>
                         </td>
                     </tr>
                             {% empty %}

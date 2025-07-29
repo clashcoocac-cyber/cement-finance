@@ -29,8 +29,8 @@ class CementType(models.Model):
 
 
 class Order(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
-    cement_type = models.ForeignKey(CementType, on_delete=models.PROTECT, related_name='orders')
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, related_name='orders', null=True)
+    cement_type = models.ForeignKey(CementType, on_delete=models.SET_NULL, related_name='orders', null=True)
     
     quantity = models.FloatField(verbose_name="Quantity (tons)")
     price_per_ton = models.IntegerField()
