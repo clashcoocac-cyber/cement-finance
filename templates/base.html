@@ -47,14 +47,35 @@
 
         <!-- Navigation Tabs -->
         <div class="modern-card rounded-2xl mb-8">
-            <div class="flex font-semibold text-gray-700 ">
-                <a href="{% url 'dashboard' %}" id="ordersTab" class="text-center flex-1 px-6 py-4 {%if page == 'dashboard' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Buyurtmalar</a>
-                <a href="{% url 'customer' %}" id="clientsTab" class="text-center flex-1 px-6 py-4 {%if page == 'customer' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Mijozlar</a>
-                <a href="{% url 'debts' %}" id="debtsTab" class="text-center flex-1 px-6 py-4 {%if page == 'debt' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Qarzlar</a>
-                <a href="{% url 'cement_type' %}" id="cementTab" class="text-center flex-1 px-6 py-4 {%if page == 'cement_type' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Sement Turlari</a>
-                <a href="{% url 'stats' %}" id="statisticsTab" class="text-center flex-1 px-6 py-4 {%if page == 'stats' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Statistika</a>
-            </div>
-        </div>
+    <div class="flex flex-wrap sm:flex-nowrap font-semibold text-gray-700 border border-gray-200 rounded-2xl overflow-hidden">
+        <a href="{% url 'dashboard' %}"
+           id="ordersTab"
+           class="w-1/2 sm:w-auto flex-1 text-center px-6 py-4 {%if page == 'dashboard' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-b sm:border-b-0 sm:border-r border-gray-200">
+            Buyurtmalar
+        </a>
+        <a href="{% url 'customer' %}"
+           id="clientsTab"
+           class="w-1/2 sm:w-auto flex-1 text-center px-6 py-4 {%if page == 'customer' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-b sm:border-b-0 sm:border-r border-gray-200">
+            Mijozlar
+        </a>
+        <a href="{% url 'debts' %}"
+           id="debtsTab"
+           class="w-1/2 sm:w-auto flex-1 text-center px-6 py-4 {%if page == 'debt' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-b sm:border-b-0 sm:border-r border-gray-200">
+            Qarzlar
+        </a>
+        <a href="{% url 'cement_type' %}"
+           id="cementTab"
+           class="w-1/2 sm:w-auto flex-1 text-center px-6 py-4 {%if page == 'cement_type' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-b sm:border-b-0 sm:border-r border-gray-200">
+            Sement Turlari
+        </a>
+        <a href="{% url 'stats' %}"
+           id="statisticsTab"
+           class="w-full sm:w-auto flex-1 text-center px-6 py-4 {%if page == 'stats' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300">
+            Statistika
+        </a>
+    </div>
+</div>
+
 
         {% block content %}
         {% endblock %}
