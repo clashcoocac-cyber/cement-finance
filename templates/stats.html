@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 {% block content %}
 
 <div id="statisticsContent" class="tab-content">
@@ -12,7 +13,7 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-5xl font-black" id="totalOrders">{{ total_orders }}</p>
+            <p class="text-4xl font-black" id="totalOrders">{{ total_orders }}</p>
         </div>
         <div class="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 rounded-3xl p-8 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 card-hover">
             <div class="flex items-center justify-between mb-6">
@@ -24,7 +25,7 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-5xl font-black" id="totalRevenue">{{ total_revenue }}</p>
+            <p class="text-4xl font-extrabold" id="totalRevenue">{{ total_revenue | format_currency}}</p>
         </div>
         <div class="bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-3xl p-8 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 card-hover">
             <div class="flex items-center justify-between mb-6">
@@ -35,7 +36,7 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-5xl font-black" id="totalDebt">{{ total_debt }}</p>
+            <p class="text-4xl font-extrabold" id="totalDebt">{{ total_debt | format_currency }}</p>
         </div>
         <div class="bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-600 rounded-3xl p-8 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 card-hover">
             <div class="flex items-center justify-between mb-6">
@@ -46,23 +47,10 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-5xl font-black" id="totalCement">{{ total_quantity }}</p>
+            <p class="text-4xl font-black" id="totalCement">{{ total_quantity | format_currency }}</p>
             <p class="text-lg opacity-90 mt-3 font-semibold">tonna</p>
         </div>
     </div>
-
-    <!-- <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <div class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
-            <h3 class="text-2xl font-bold text-gray-800 mb-8">Eng Ko'p Sotilgan Sement Turlari</h3>
-            <div id="topCementTypes" class="space-y-4">
-            </div>
-        </div>
-        <div class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
-            <h3 class="text-2xl font-bold text-gray-800 mb-8">Eng Faol Mijozlar</h3>
-            <div id="topClients" class="space-y-4">
-            </div>
-        </div>
-    </div> -->
 </div>
 
 {% endblock %}

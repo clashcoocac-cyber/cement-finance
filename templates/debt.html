@@ -1,6 +1,6 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 {% block content %}
-
 
 <div id="debtsContent" class="tab-content">
     <!-- Debt Payment Section -->
@@ -49,7 +49,7 @@
             <tr>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.paid_at | date:"Y-m-d" }}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.customer.name }}</td>
-                <td class="px-6 py-4 text-sm text-green-600 font-semibold">{{ payment.amount }} so'm</td>
+                <td class="px-6 py-4 text-sm text-green-600 font-semibold">{{ payment.amount | format_currency }} so'm</td>
                 <td class="px-6 py-4 text-sm text-gray-500">{{ payment.paid_at | time:"H:i" }}</td>
             </tr>
             {% endfor %}
