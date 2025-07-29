@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sement Savdo Tizimi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
+        body { font-family: 'Mona Sans', sans-serif; }
+        .modern-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Header -->
+        <div class="gradient-bg rounded-2xl shadow-lg p-8 mb-8 text-white card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold mb-3 tracking-tight">Sement Savdo Tizimi</h1>
+                    <p class="text-white/90 text-lg font-medium">Buyurtmalar va Hisobotlar</p>
+                </div>
+                <div class="hidden md:block">
+                    <div class="w-20 h-20 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="modern-card rounded-2xl mb-8">
+            <div class="flex font-semibold text-gray-700 ">
+                <a href="{% url 'dashboard' %}" id="ordersTab" class="text-center flex-1 px-6 py-4 {%if page == 'dashboard' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Buyurtmalar</a>
+                <a href="{% url 'customer' %}" id="clientsTab" class="text-center flex-1 px-6 py-4 {%if page == 'customer' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Mijozlar</a>
+                <a href="{% url 'debts' %}" id="debtsTab" class="text-center flex-1 px-6 py-4 {%if page == 'debt' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Qarzlar</a>
+                <a href="{% url 'cement_type' %}" id="cementTab" class="text-center flex-1 px-6 py-4 {%if page == 'cement_type' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Sement Turlari</a>
+                <a href="{% url 'stats' %}" id="statisticsTab" class="text-center flex-1 px-6 py-4 {%if page == 'stats' %}font-bold bg-blue-50 text-blue-700{% endif %} hover:text-blue-700 hover:bg-gray-50 transition-all duration-300 border-r border-gray-200">Statistika</a>
+            </div>
+        </div>
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script>
+        // Data storage
+        let clients = JSON.parse(localStorage.getItem('clients')) || [];
+        let cementTypes = JSON.parse(localStorage.getItem('cementTypes')) || [];
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+        let debtPayments = JSON.parse(localStorage.getItem('debtPayments')) || [];
+        let clientDebts = JSON.parse(localStorage.getItem('clientDebts')) || {};
+
+        // Initialize with sample data if empty
+        if (clients.length === 0) {
+            clients = [
+                {id: 1, name: "Anvar Karimov", phone: "+998901234567", address: "Toshkent, Chilonzor"},
+                {id: 2, name: "Bobur Hamroev", phone: "+998901234568", address: "Samarqand, Registon"},
+                {id: 3, name: "Dilshod Umarov", phone: "+998901234569", address: "Buxoro, Markaz"}
+            ];
+            localStorage.setItem('clients', JSON.stringify(clients));
+        }
+
+        if (cementTypes.length === 0) {
+            cementTypes = [
+                {id: 1, type: "M400"},
+                {id: 2, type: "M500"},
+                {id: 3, type: "M600"}
+            ];
+            localStorage.setItem('cementTypes', JSON.stringify(cementTypes));
+        }
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('[id$="Tab"]').forEach(tab => {
+                tab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                tab.classList.add('text-gray-500');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + 'Content').classList.remove('hidden');
+            
+            // Add active class to selected tab
+            const activeTab = document.getElementById(tabName + 'Tab');
+            activeTab.classList.remove('text-gray-500');
+            activeTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            
+            // Load data for the selected tab
+            if (tabName === 'orders') {
+                loadOrdersData();
+            } else if (tabName === 'clients') {
+                loadClientsData();
+            } else if (tabName === 'debts') {
+                loadDebtsData();
+            } else if (tabName === 'cement') {
+                loadCementData();
+            } else if (tabName === 'statistics') {
+                loadStatistics();
+            }
+        }
+
+        // Calculate totals
+        function calculateTotal() {
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const price = parseFloat(document.getElementById('price').value) || 0;
+            const transportCost = parseFloat(document.getElementById('transportCost').value) || 0;
+            const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+            
+            const totalPrice = quantity * price;
+            const grandTotal = totalPrice - transportCost; // Transport cost is subtracted
+            const remainingDebt = grandTotal - paidAmount;
+            
+            document.getElementById('totalPrice').value = totalPrice;
+            document.getElementById('grandTotal').value = grandTotal;
+            document.getElementById('remainingDebt').value = remainingDebt;
+        }
+
+        // Client management
+        function addClient() {
+            const name = document.getElementById('clientName').value.trim();
+            const phone = document.getElementById('clientPhone').value.trim();
+            const address = document.getElementById('clientAddress').value.trim();
+            
+            if (!name || !phone) {
+                alert('Mijoz nomi va telefon raqami majburiy!');
+                return;
+            }
+            
+            const newClient = {
+                id: Date.now(),
+                name: name,
+                phone: phone,
+                address: address
+            };
+            
+            clients.push(newClient);
+            localStorage.setItem('clients', JSON.stringify(clients));
+            
+            // Clear form
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientPhone').value = '';
+            document.getElementById('clientAddress').value = '';
+            
+            loadClientsData();
+            updateSelects();
+        }
+
+        function deleteClient(id) {
+            if (confirm('Mijozni o\'chirmoqchimisiz?')) {
+                clients = clients.filter(client => client.id !== id);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                loadClientsData();
+                updateSelects();
+            }
+        }
+
+        // Cement type management
+        function addCementType() {
+            const type = document.getElementById('cementType').value.trim();
+            
+            if (!type) {
+                alert('Sement turi nomi majburiy!');
+                return;
+            }
+            
+            const newCementType = {
+                id: Date.now(),
+                type: type
+            };
+            
+            cementTypes.push(newCementType);
+            localStorage.setItem('cementTypes', JSON.stringify(cementTypes));
+            
+            // Clear form
+            document.getElementById('cementType').value = '';
+            
+            loadCementData();
+            updateSelects();
+        }
+
+        function deleteCementType(id) {
+            if (confirm('Sement turini o\'chirmoqchimisiz?')) {
+                cementTypes = cementTypes.filter(cement => cement.id !== id);
+                localStorage.setItem('cementTypes', JSON.stringify(cementTypes));
+                loadCementData();
+                updateSelects();
+            }
+        }
+
+        // Order management
+        function addOrder() {
+            const clientId = document.getElementById('clientSelect').value;
+            const cementId = document.getElementById('cementSelect').value;
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const price = parseFloat(document.getElementById('price').value) || 0;
+            const transportCost = parseFloat(document.getElementById('transportCost').value) || 0;
+            const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+            const carNumber = document.getElementById('carNumber').value.trim();
+            
+            if (!clientId || !cementId || quantity <= 0 || price <= 0 || !carNumber) {
+                alert('Barcha majburiy maydonlarni to\'ldiring!');
+                return;
+            }
+            
+            const client = clients.find(c => c.id == clientId);
+            const cement = cementTypes.find(c => c.id == cementId);
+            
+            const totalPrice = quantity * price;
+            const grandTotal = totalPrice - transportCost; // Transport cost is subtracted
+            const remainingDebt = grandTotal - paidAmount;
+            
+            const newOrder = {
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                clientId: parseInt(clientId),
+                clientName: client.name,
+                cementId: parseInt(cementId),
+                cementType: cement.type,
+                quantity: quantity,
+                price: price,
+                totalPrice: totalPrice,
+                transportCost: transportCost,
+                grandTotal: grandTotal,
+                paidAmount: paidAmount,
+                remainingDebt: remainingDebt,
+                carNumber: carNumber
+            };
+            
+            orders.push(newOrder);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            
+            // Update client debt
+            if (!clientDebts[clientId]) {
+                clientDebts[clientId] = 0;
+            }
+            clientDebts[clientId] += remainingDebt;
+            localStorage.setItem('clientDebts', JSON.stringify(clientDebts));
+            
+            // Clear form
+            document.getElementById('clientSelect').value = '';
+            document.getElementById('cementSelect').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('transportCost').value = '';
+            document.getElementById('paidAmount').value = '';
+            document.getElementById('carNumber').value = '';
+            document.getElementById('totalPrice').value = '';
+            document.getElementById('grandTotal').value = '';
+            document.getElementById('remainingDebt').value = '';
+            
+            loadOrdersData();
+        }
+
+        function deleteOrder(id) {
+            if (confirm('Buyurtmani o\'chirmoqchimisiz?')) {
+                orders = orders.filter(order => order.id !== id);
+                localStorage.setItem('orders', JSON.stringify(orders));
+                loadOrdersData();
+            }
+        }
+            const tbody = document.getElementById('clientsTable');
+            tbody.innerHTML = '';
+            
+            clients.forEach(client => {
+                // Get client's debt from clientDebts object
+                const totalDebt = clientDebts[client.id] || 0;
+                
+                const row = `
+                    <tr>
+                        <td class="px-4 py-3 text-sm text-gray-900">${client.name}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${client.phone}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${client.address}</td>
+                        <td class="px-4 py-3 text-sm ${totalDebt > 0 ? 'text-red-600 font-semibold' : 'text-green-600'}">${totalDebt.toLocaleString()} so'm</td>
+                        <td class="px-4 py-3 text-sm">
+                            <button onclick="deleteClient(${client.id})" class="text-red-600 hover:text-red-800">O'chirish</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function loadCementData() {
+            const tbody = document.getElementById('cementTable');
+            tbody.innerHTML = '';
+            
+            cementTypes.forEach(cement => {
+                const row = `
+                    <tr>
+                        <td class="px-4 py-3 text-sm text-gray-900">${cement.type}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <button onclick="deleteCementType(${cement.id})" class="text-red-600 hover:text-red-800">O'chirish</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function loadOrdersData() {
+            filterOrders();
+        }
+
+        function filterOrders() {
+            const clientFilter = document.getElementById('filterClient').value;
+            const cementFilter = document.getElementById('filterCement').value;
+            const dateFromFilter = document.getElementById('filterDateFrom').value;
+            const dateToFilter = document.getElementById('filterDateTo').value;
+            
+            let filteredOrders = orders;
+            
+            if (clientFilter) {
+                filteredOrders = filteredOrders.filter(order => order.clientId == clientFilter);
+            }
+            
+            if (cementFilter) {
+                filteredOrders = filteredOrders.filter(order => order.cementId == cementFilter);
+            }
+            
+            if (dateFromFilter) {
+                filteredOrders = filteredOrders.filter(order => order.date >= dateFromFilter);
+            }
+            
+            if (dateToFilter) {
+                filteredOrders = filteredOrders.filter(order => order.date <= dateToFilter);
+            }
+            
+            const tbody = document.getElementById('ordersTable');
+            tbody.innerHTML = '';
+            
+            filteredOrders.forEach(order => {
+                const row = `
+                    <tr>
+                        <td class="px-4 py-3 text-sm text-gray-900">${order.date}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${order.clientName}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${order.cementType}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${order.quantity} t</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${order.carNumber || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${order.price.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${order.grandTotal.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${order.paidAmount.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm ${order.remainingDebt > 0 ? 'text-red-600' : 'text-green-600'}">${order.remainingDebt.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <button onclick="deleteOrder(${order.id})" class="text-red-600 hover:text-red-800">O'chirish</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Debt payment functions
+        function showClientDebt() {
+            const clientId = document.getElementById('debtClientSelect').value;
+            const debtInfo = document.getElementById('clientDebtInfo');
+            const debtDetails = document.getElementById('clientDebtDetails');
+            
+            if (!clientId) {
+                debtInfo.classList.add('hidden');
+                return;
+            }
+            
+            const totalDebt = clientDebts[clientId] || 0;
+            const client = clients.find(c => c.id == clientId);
+            
+            if (totalDebt > 0) {
+                debtDetails.textContent = `${client.name} ning jami qarzi: ${totalDebt.toLocaleString()} so'm`;
+                debtInfo.classList.remove('hidden');
+            } else {
+                debtDetails.textContent = `${client.name} ning qarzi yo'q`;
+                debtInfo.classList.remove('hidden');
+            }
+        }
+
+        function processDebtPayment() {
+            const clientId = document.getElementById('debtClientSelect').value;
+            const paidAmount = parseFloat(document.getElementById('paidDebtAmount').value) || 0;
+            
+            if (!clientId || paidAmount <= 0) {
+                alert('Mijozni tanlang va to\'langan summani kiriting!');
+                return;
+            }
+            
+            const client = clients.find(c => c.id == clientId);
+            const currentDebt = clientDebts[clientId] || 0;
+            
+            if (currentDebt <= 0) {
+                alert('Bu mijozning qarzi yo\'q!');
+                return;
+            }
+            
+            if (paidAmount > currentDebt) {
+                alert('To\'langan summa qarzdan ko\'p bo\'lishi mumkin emas!');
+                return;
+            }
+            
+            // Update client debt
+            clientDebts[clientId] = currentDebt - paidAmount;
+            localStorage.setItem('clientDebts', JSON.stringify(clientDebts));
+            
+            // Record debt payment
+            const debtPayment = {
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString('uz-UZ'),
+                clientId: parseInt(clientId),
+                clientName: client.name,
+                paidAmount: paidAmount
+            };
+            
+            debtPayments.push(debtPayment);
+            localStorage.setItem('debtPayments', JSON.stringify(debtPayments));
+            
+            // Clear form
+            document.getElementById('debtClientSelect').value = '';
+            document.getElementById('paidDebtAmount').value = '';
+            document.getElementById('clientDebtInfo').classList.add('hidden');
+            
+            alert(`${client.name} dan ${paidAmount.toLocaleString()} so'm qarz qabul qilindi!`);
+            loadClientsData();
+            loadDebtsData();
+        }
+
+        // Load debts data
+        function loadDebtsData() {
+            const tbody = document.getElementById('debtPaymentsTable');
+            tbody.innerHTML = '';
+            
+            // Sort debt payments by date (newest first)
+            const sortedPayments = [...debtPayments].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedPayments.forEach(payment => {
+                const row = `
+                    <tr>
+                        <td class="px-6 py-4 text-sm text-gray-900">${payment.date}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${payment.clientName}</td>
+                        <td class="px-6 py-4 text-sm text-green-600 font-semibold">${payment.paidAmount.toLocaleString()} so'm</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${payment.time}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function updateSelects() {
+            // Update client selects
+            const clientSelects = ['clientSelect', 'filterClient', 'debtClientSelect'];
+            clientSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                const currentValue = select.value;
+                
+                if (selectId === 'clientSelect') {
+                    select.innerHTML = '<option value="">Mijozni tanlang</option>';
+                } else if (selectId === 'debtClientSelect') {
+                    select.innerHTML = '<option value="">Mijozni tanlang</option>';
+                } else {
+                    select.innerHTML = '<option value="">Barcha mijozlar</option>';
+                }
+                
+                clients.forEach(client => {
+                    select.innerHTML += `<option value="${client.id}">${client.name}</option>`;
+                });
+                
+                select.value = currentValue;
+            });
+            
+            // Update cement selects
+            const cementSelects = ['cementSelect', 'filterCement'];
+            cementSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                const currentValue = select.value;
+                select.innerHTML = selectId === 'cementSelect' ? '<option value="">Sement turini tanlang</option>' : '<option value="">Barcha turlar</option>';
+                
+                cementTypes.forEach(cement => {
+                    select.innerHTML += `<option value="${cement.id}">${cement.type}</option>`;
+                });
+                
+                select.value = currentValue;
+            });
+        }
+
+        function loadStatistics() {
+            const totalOrders = orders.length;
+            const totalRevenue = orders.reduce((sum, order) => sum + order.paidAmount, 0);
+            const totalDebt = Object.values(clientDebts).reduce((sum, debt) => sum + debt, 0);
+            const totalCement = orders.reduce((sum, order) => sum + order.quantity, 0);
+            
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString() + ' so\'m';
+            document.getElementById('totalDebt').textContent = totalDebt.toLocaleString() + ' so\'m';
+            document.getElementById('totalCement').textContent = totalCement.toFixed(1);
+            
+            // Top cement types
+            const cementStats = {};
+            orders.forEach(order => {
+                if (cementStats[order.cementType]) {
+                    cementStats[order.cementType] += order.quantity;
+                } else {
+                    cementStats[order.cementType] = order.quantity;
+                }
+            });
+            
+            const topCementDiv = document.getElementById('topCementTypes');
+            topCementDiv.innerHTML = '';
+            
+            Object.entries(cementStats)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5)
+                .forEach(([type, quantity]) => {
+                    topCementDiv.innerHTML += `
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <span class="font-medium">${type}</span>
+                            <span class="text-blue-600 font-semibold">${quantity.toFixed(1)} t</span>
+                        </div>
+                    `;
+                });
+            
+            // Top clients
+            const clientStats = {};
+            orders.forEach(order => {
+                if (clientStats[order.clientName]) {
+                    clientStats[order.clientName] += order.grandTotal;
+                } else {
+                    clientStats[order.clientName] = order.grandTotal;
+                }
+            });
+            
+            const topClientsDiv = document.getElementById('topClients');
+            topClientsDiv.innerHTML = '';
+            
+            Object.entries(clientStats)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5)
+                .forEach(([name, total]) => {
+                    topClientsDiv.innerHTML += `
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <span class="font-medium">${name}</span>
+                            <span class="text-green-600 font-semibold">${total.toLocaleString()} so'm</span>
+                        </div>
+                    `;
+                });
+        }
+
+        function downloadReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.text('Sement Savdo Hisoboti', 20, 20);
+            
+            // Add date
+            doc.setFontSize(12);
+            doc.text('Sana: ' + new Date().toLocaleDateString(), 20, 35);
+            
+            // Add statistics
+            let yPos = 50;
+            doc.setFontSize(14);
+            doc.text('Umumiy Statistika:', 20, yPos);
+            
+            yPos += 15;
+            doc.setFontSize(12);
+            doc.text(`Jami buyurtmalar: ${orders.length}`, 20, yPos);
+            yPos += 10;
+            doc.text(`Jami daromad: ${orders.reduce((sum, order) => sum + order.paidAmount, 0).toLocaleString()} so'm`, 20, yPos);
+            yPos += 10;
+            doc.text(`Jami qarzlar: ${orders.reduce((sum, order) => sum + order.remainingDebt, 0).toLocaleString()} so'm`, 20, yPos);
+            yPos += 10;
+            doc.text(`Sotilgan sement: ${orders.reduce((sum, order) => sum + order.quantity, 0).toFixed(1)} tonna`, 20, yPos);
+            
+            // Add orders table
+            yPos += 25;
+            doc.setFontSize(14);
+            doc.text('Buyurtmalar:', 20, yPos);
+            
+            yPos += 15;
+            doc.setFontSize(10);
+            
+            // Table headers
+            const headers = ['Sana', 'Mijoz', 'Sement', 'Miqdor', 'Jami', 'Olingan', 'Qarz'];
+            let xPos = 20;
+            headers.forEach(header => {
+                doc.text(header, xPos, yPos);
+                xPos += 25;
+            });
+            
+            yPos += 10;
+            
+            // Table data
+            orders.slice(0, 20).forEach(order => { // Limit to 20 orders for PDF
+                xPos = 20;
+                doc.text(order.date, xPos, yPos);
+                xPos += 25;
+                doc.text(order.clientName.substring(0, 10), xPos, yPos);
+                xPos += 25;
+                doc.text(order.cementType, xPos, yPos);
+                xPos += 25;
+                doc.text(order.quantity + 't', xPos, yPos);
+                xPos += 25;
+                doc.text((order.grandTotal / 1000).toFixed(0) + 'k', xPos, yPos);
+                xPos += 25;
+                doc.text((order.paidAmount / 1000).toFixed(0) + 'k', xPos, yPos);
+                xPos += 25;
+                doc.text((order.remainingDebt / 1000).toFixed(0) + 'k', xPos, yPos);
+                
+                yPos += 8;
+                if (yPos > 280) { // New page if needed
+                    doc.addPage();
+                    yPos = 20;
+                }
+            });
+            
+            doc.save('sement-hisobot.pdf');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSelects();
+            showTab('orders');
+        });
+
+        function setFilter(){
+            const clientSelect = document.getElementById('filterClient');
+            const cementSelect = document.getElementById('filterCement');
+            const dateFrom = document.getElementById('filterDateFrom').value;
+            const dateTo = document.getElementById('filterDateTo').value;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('customer_id', clientSelect.value);
+            urlParams.set('cement_type_id', cementSelect.value);
+            urlParams.set('date_from', dateFrom);
+            urlParams.set('date_to', dateTo);
+
+            window.location.search = urlParams.toString();
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966aa21fe04a767a',t:'MTc1Mzc3MTMxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

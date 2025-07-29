@@ -1,0 +1,64 @@
+from django import forms
+from finance.models import Customer, CementType, Order, PaymentHistory
+
+
+class OrderForm(forms.ModelForm):    
+    customer_id = forms.IntegerField()
+    cement_type_id = forms.IntegerField()
+
+    class Meta:
+        model = Order
+        fields = ['customer_id', 'cement_type_id', 'quantity', 'price_per_ton', 'road_cost', 'paid_amount', 'car_number']
+
+    def save(self, commit = True):
+        order = super().save(commit=False)
+        order.customer = Customer.objects.get(id=self.cleaned_data['customer_id'])
+        order.cement_type = CementType.objects.get(id=self.cleaned_data['cement_type_id'])
+        if commit:
+            order.save()
+            customer = order.customer
+            customer.total_debt += order.remaining_debt
+            customer.save()
+        return order
+
+
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = ['name', 'phone', 'address']
+
+    def save(self, commit=True):
+        customer = super().save(commit=False)
+        if commit:
+            customer.save()
+        return customer
+
+
+class PaymentForm(forms.ModelForm):
+    customer_id = forms.IntegerField()
+
+    class Meta:
+        model = PaymentHistory
+        fields = ['customer_id', 'amount']
+
+    def save(self, commit=True):
+        payment_history = super().save(commit=False)
+        payment_history.customer = Customer.objects.get(id=self.cleaned_data['customer_id'])
+        if commit:
+            payment_history.save()
+            customer = payment_history.customer
+            customer.total_debt -= payment_history.amount
+            customer.save()
+        return payment_history
+
+
+class CementTypeForm(forms.ModelForm):
+    class Meta:
+        model = CementType
+        fields = ['name']
+
+    def save(self, commit=True):
+        cement_type = super().save(commit=False)
+        if commit:
+            cement_type.save()
+        return cement_type

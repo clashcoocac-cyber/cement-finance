@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<div id="debtsContent" class="tab-content">
+    <!-- Debt Payment Section -->
+    <div class="modern-card rounded-2xl p-6 mb-6 card-hover">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Qarz Qabul Qilish</h2>
+        <form action="{% url 'debts' %}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>
+                <select name="customer_id" id="debtClientSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm">
+                    <option value="">Mijozni tanlang</option>
+                    {% for customer in customers %}
+                        <option value="{{ customer.id }}">{{ customer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">To'langan Summa</label>
+                <input type="number" name="amount" id="paidDebtAmount" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" placeholder="0">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-bold text-sm shadow-lg hover:shadow-xl">Qarzni Qabul Qilish</button>
+            </div>
+        </form>
+        <div id="clientDebtInfo" class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg hidden">
+            <h3 class="font-bold text-yellow-800 mb-1 text-sm">Mijoz Qarz Ma'lumoti:</h3>
+            <p id="clientDebtDetails" class="text-yellow-700 text-sm">Bobur Hamroev ning jami qarzi: 2,156 so'm</p>
+        </div>
+    </div>
+
+    <!-- Debt Payments History -->
+    <div class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
+        <h3 class="text-2xl font-bold text-gray-800 mb-8">Qarz To'lovlari Tarixi</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full table-auto">
+                <thead class="bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl">
+                    <tr>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Mijoz</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">To'langan Summa</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Vaqt</th>
+                    </tr>
+                </thead>
+                <tbody id="debtPaymentsTable" class="divide-y divide-white/30">
+                    {% for payment in payments %}
+            <tr>
+                <td class="px-6 py-4 text-sm text-gray-900">{{ payment.paid_at | date:"Y-m-d" }}</td>
+                <td class="px-6 py-4 text-sm text-gray-900">{{ payment.customer.name }}</td>
+                <td class="px-6 py-4 text-sm text-green-600 font-semibold">{{ payment.amount }} so'm</td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ payment.paid_at | time:"H:i" }}</td>
+            </tr>
+            {% endfor %}
+                    {% if not payments %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-sm text-gray-500 text-center">Hozircha qarz to'lovlari mavjud emas</td>
+                        </tr>
+                    {% endif %}
+        </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+   
