@@ -5,7 +5,7 @@ from django.views import View
 from django.contrib.auth.views import LoginView as LView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from finance.models import Customer, CementType, Order, PaymentHistory
-from finance.filters import OrderFilter, PaymentFilter
+from finance.filters import OrderFilter, CustomerFilter, PaymentFilter
 from finance.forms import CementTypeForm, OrderForm, CustomerForm, PaymentForm
 
 
@@ -56,11 +56,14 @@ class CustomerView(LoginRequiredMixin, View):
     template_name = 'customer.html'
 
     def get(self, request):
-        customers = Customer.objects.order_by('-total_debt')
+        customers = CustomerFilter(request.GET, Customer.objects.order_by('-total_debt')).qs
+        all_customers = Customer.objects.order_by('-total_debt')
+
         return render(request, self.template_name, context={
             'customers': customers,
+            'all_customers': all_customers,
             'today': date.today().strftime('%Y-%m-%d'),
-            'total_debt': sum(customer.total_debt for customer in Customer.objects.all()),
+            'total_debt': sum(customer.total_debt for customer in customers),
             'page': 'customer',
         })
     
@@ -103,6 +106,7 @@ class CementTypeView(LoginRequiredMixin, View):
         return render(request, self.template_name, context={
             'cement_types': cement_types,
             'colors': CementType.ColorChoices,
+            'total_quantity': sum(cement_type.total_quantity or 0 for cement_type in cement_types),
             'page': 'cement_type',
         })
     

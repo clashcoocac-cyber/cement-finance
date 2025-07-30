@@ -1,6 +1,6 @@
 import datetime
 import django_filters
-from finance.models import Order, PaymentHistory
+from finance.models import Order, Customer, PaymentHistory
 
 
 class OrderFilter(django_filters.FilterSet):
@@ -12,6 +12,22 @@ class OrderFilter(django_filters.FilterSet):
     class Meta:
         model = Order
         fields = ['customer', 'cement_type', 'date_from', 'date_to']
+
+
+class CustomerFilter(django_filters.FilterSet):
+    debt = django_filters.CharFilter(method='filter_debt')
+
+    class Meta:
+        model = Customer
+        fields = ['id', 'debt']
+
+    def filter_debt(self, queryset, name, value):
+        print(value)
+        if value == 'no_debt':
+            return queryset.filter(total_debt=0)
+        elif value == 'with_debt':
+            return queryset.exclude(total_debt=0)
+        return queryset
 
 
 class PaymentFilter(django_filters.FilterSet):

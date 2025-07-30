@@ -27,7 +27,29 @@
     <div id="invoice" class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
                 <div class="flex justify-between items-center mb-8">
                     <h3 class="text-2xl font-bold text-gray-800">Mijozlar Ro'yxati</h3>
+                    
                     <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Ro'yxatni Yuklash</button>
+                </div>
+                <div class="mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mijoz nomi bo'yicha</label>
+                            <select onchange="setFilter()" name="id" id="filterClientName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 text-sm" onchange="filterClientsList()">
+                                <option value="">Barcha mijozlar</option>
+                                {% for customer in all_customers %}
+                                    <option value="{{ customer.id }}" {% if request.GET.id == customer.id|slugify %}selected{% endif %}>{{ customer.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Qarz holati bo'yicha</label>
+                            <select onchange="setFilter()" id="filterClientDebt" name="debt" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 text-sm" onchange="filterClientsList()">
+                                <option value="">Barcha mijozlar</option>
+                                <option value="with_debt" {% if request.GET.debt == 'with_debt' %}selected{% endif %}>Qarzi bor</option>
+                                <option value="no_debt" {% if request.GET.debt == 'no_debt' %}selected{% endif %}>Qarzi yo'q</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto">
@@ -66,6 +88,17 @@
 </div>
 
 <script>
+    function setFilter(){
+        const ClientName = document.getElementById('filterClientName');
+        const ClientDebt = document.getElementById('filterClientDebt');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('id', ClientName.value);
+        urlParams.set('debt', ClientDebt.value);
+
+        window.location.search = urlParams.toString();
+    }
+
     function generatePDF() {
     const element = document.getElementById("invoice");
 
