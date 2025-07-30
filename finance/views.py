@@ -69,6 +69,7 @@ class CustomerView(LoginRequiredMixin, View):
     
     def post(self, request):
         form = CustomerForm(request.POST)
+        print(request.POST)
         if form.is_valid():
             form.save()
             return redirect('customer')

@@ -23,13 +23,18 @@ class OrderForm(forms.ModelForm):
 
 
 class CustomerForm(forms.ModelForm):
+    total_debt = forms.IntegerField(required=False)
+
     class Meta:
         model = Customer
-        fields = ['name', 'phone', 'address']
+        fields = ['name', 'phone', 'address', 'total_debt']
 
     def save(self, commit=True):
         customer = super().save(commit=False)
+        total_debt = self.cleaned_data.get('total_debt') or 0
+
         if commit:
+            customer.total_debt = total_debt
             customer.save()
         return customer
 
