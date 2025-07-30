@@ -174,11 +174,11 @@
 
 function editClient(button) {
     row = button.parentElement.parentElement.parentElement;
-    const name = row.children[0].innerText;
-    const phone = row.children[1].innerText;
-    const address = row.children[2].innerText;
-    const debt = row.children[3].innerText.replace(/\D/g, '');
-    const customer_id = row.children[4].innerText;
+    const name = row.children[1].innerText;
+    const phone = row.children[2].innerText;
+    const address = row.children[3].innerText;
+    const debt = row.children[4].innerText.replace(/\D/g, '');
+    const customer_id = row.children[5].innerText;
 
     document.getElementById('editClientName').value = name;
     document.getElementById('editClientPhone').value = phone;
