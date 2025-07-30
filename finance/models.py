@@ -19,10 +19,16 @@ class Customer(models.Model):
 class CementType(models.Model):
 
     class ColorChoices(models.TextChoices):
-        BLUE = '🟦', "🟦 Ko'k"
-        GREEN = '🟩', "🟩 Yashil"
-        RED = "🟥", "🟥 Qizil"
-        YELLOW = "🟨", "🟨 Sariq"
+        RED = '#FF0000', "Qizil"
+        ORANGE = '#FFA500', "To'q sariq"
+        YELLOW = '#FFFF00', "Sariq"
+        GREEN = '#00B050', "Yashil"
+        DARK_BLUE = '#0070C0', "To'q ko‘k"
+        BLUE = '#00B0F0', "Moviy"
+        INDIGO = '#002060', "Ko‘k"
+        PURPLE = '#7030A0', "Binafsha"
+        GRAY = '#808080', "Kulrang"
+        BLACK = '#000000', "Qora"
 
     name = models.CharField(max_length=50)
     color = models.CharField(max_length=10, choices=ColorChoices)

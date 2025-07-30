@@ -16,7 +16,9 @@
                         <select required id="cementColor" name="color" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 text-sm">
                             <option value="">Rangni tanlang</option>
                             {% for color in colors %}
-                                <option value="{{ color.value }}">{{ color.label }}</option>
+                                <option value="{{ color.value }}" style="color: {{ color.value }}">
+                                    {{ color.label }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -44,7 +46,10 @@
                                 <tr>
                         <td class="px-4 py-3 text-sm text-gray-900">{{ cement_type.name }}</td>
                         <td class="px-4 py-3 text-sm">
-                            {{ cement_type.get_color_display }}
+                            <div class="flex items-center space-x-2">
+                                <div class="w-6 h-6 rounded-full border-2 border-gray-300" style="background-color: {{ cement_type.color }}"></div>
+                                <span class="text-gray-700">{{ cement_type.get_color_display }}</span>
+                            </div>
                         </td>
                         <td class="px-4 py-3 text-sm"> {{ cement_type.total_quantity | default:0 | format_currency }}</td>
                     </tr>

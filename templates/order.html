@@ -138,7 +138,10 @@
                                         {{ order.customer.name }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                        {{ order.cement_type.name }} {{ order.cement_type.color }}
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-gray-700">{{ order.cement_type.name }}</span>
+                                            <div class="w-5 h-5 rounded-full border-2 border-gray-300" style="background-color: {{ order.cement_type.color }}"></div>
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ order.car_number }}
