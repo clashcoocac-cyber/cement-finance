@@ -77,14 +77,13 @@
                 <h3 class="text-2xl font-bold text-gray-800 mb-8">Filterlar</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
-                        <label class="block text-sm font-semibold text-blue-600 mb-3">Mijoz bo'yicha</label>
-                        <select onchange="setFilter()" id="filterClient" class="text-sm py-3 w-full p-4 border-2 border-white/30 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/50 backdrop-blur-sm transition-all duration-300 font-medium" onchange="filterOrders()">
-                            <option value="">Barcha mijozlar</option>
-                            {% for customer in customers %}
-                                <option value="{{ customer.id }}" {% if request.GET.customer_id == customer.id|slugify %}selected{% endif %}>{{ customer.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                            <label class="block text-sm font-semibold text-blue-600 mb-3">Mijoz nomi bo'yicha</label>
+                            <div class="relative">
+                                <input type="text" id="filterClientNameSearch" class="text-sm py-3 w-full p-4 border-2 border-white/30 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/50 backdrop-blur-sm transition-all duration-300 font-medium" placeholder="Mijoz qidirish..." oninput="searchFilterClients()" onfocus="showFilterClientDropdown()" onblur="hideFilterClientDropdown()">
+                                <div id="filterClientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden"><div class="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 font-medium text-blue-600"><div>📋 Barcha mijozlar</div></div><div class="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100"><div class="font-medium">Anvar Karimov</div><div class="text-gray-500 text-xs">+998901234567</div></div><div class="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100"><div class="font-medium">Bobur Hamroev</div><div class="text-gray-500 text-xs">+998901234568</div></div><div class="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100"><div class="font-medium">Dilshod Umarov</div><div class="text-gray-500 text-xs">+998901234569</div></div></div>
+                            </div>
+                            <input oninput="setFilter()" type="hidden" id="selectedFilterClientId" name="customer_id" value="">
+                        </div>
                     <div>
                         <label class="block text-sm font-semibold text-blue-600 mb-3">Sement turi bo'yicha</label>
                         <select onchange="setFilter()" id="filterCement" class="text-sm py-3 w-full p-4 border-2 border-white/30 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/50 backdrop-blur-sm transition-all duration-300 font-medium" onchange="filterOrders()">
@@ -140,7 +139,7 @@
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         <div class="flex items-center space-x-2">
                                             <span class="text-gray-700">{{ order.cement_type.name }}</span>
-                                            <div class="w-5 h-5 rounded-full border-2 border-gray-300" style="background-color: {{ order.cement_type.color }}"></div>
+                                            <div class="w-5 h-5 rounded-full border-2 border-gray-300" style="background-color: {{ order.car_numbercement_type.color }}"></div>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
@@ -208,7 +207,7 @@
         }
 
         function setFilter(){
-            const clientSelect = document.getElementById('filterClient');
+            const clientSelect = document.getElementById('selectedFilterClientId');
             const cementSelect = document.getElementById('filterCement');
             const dateFrom = document.getElementById('filterDateFrom').value;
             const dateTo = document.getElementById('filterDateTo').value;
@@ -302,6 +301,97 @@
 
     html2pdf().set(opt).from(element).save();
 }
+function searchFilterClients() {
+            const searchTerm = document.getElementById('filterClientNameSearch').value.toLowerCase();
+            const dropdown = document.getElementById('filterClientDropdown');
+            
+            if (searchTerm.length === 0) {
+                dropdown.innerHTML = '';
+                dropdown.classList.add('hidden');
+                // Clear filter when search is empty
+                document.getElementById('selectedFilterClientId').value = '';
+                filterClientsList();
+                return;
+            }
+            
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) || 
+                client.phone.includes(searchTerm)
+            );
+            
+            dropdown.innerHTML = '';
+            
+            // Add "Barcha mijozlar" option
+            const allOption = document.createElement('div');
+            allOption.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 font-medium text-blue-600';
+            allOption.innerHTML = '<div>📋 Barcha mijozlar</div>';
+            allOption.onclick = () => selectFilterClient(null);
+            dropdown.appendChild(allOption);
+            
+            if (filteredClients.length === 0) {
+                dropdown.innerHTML += '<div class="p-3 text-gray-500 text-sm">Mijoz topilmadi</div>';
+            } else {
+                filteredClients.forEach(client => {
+                    const option = document.createElement('div');
+                    option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
+                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.onclick = () => selectFilterClient(client);
+                    dropdown.appendChild(option);
+                });
+            }
+            
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectFilterClient(client) {
+            if (client === null) {
+                // "Barcha mijozlar" selected
+                document.getElementById('filterClientNameSearch').value = '';
+                document.getElementById('selectedFilterClientId').value = ''
+                setFilter();
+            } else {
+                document.getElementById('filterClientNameSearch').value = client.name;
+                document.getElementById('selectedFilterClientId').value = client.id;
+                setFilter();
+            }
+            document.getElementById('filterClientDropdown').classList.add('hidden');
+        }
+
+        function showFilterClientDropdown() {
+            const searchTerm = document.getElementById('filterClientNameSearch').value;
+            if (searchTerm.length > 0) {
+                searchFilterClients();
+            } else {
+                // Show all clients when focused with empty search
+                const dropdown = document.getElementById('filterClientDropdown');
+                dropdown.innerHTML = '';
+                
+                // Add "Barcha mijozlar" option
+                const allOption = document.createElement('div');
+                allOption.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 font-medium text-blue-600';
+                allOption.innerHTML = '<div>📋 Barcha mijozlar</div>';
+                allOption.onclick = () => selectFilterClient(null);
+                dropdown.appendChild(allOption);
+                
+                // Add all clients
+                clients.forEach(client => {
+                    const option = document.createElement('div');
+                    option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
+                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.onclick = () => selectFilterClient(client);
+                    dropdown.appendChild(option);
+                });
+                
+                dropdown.classList.remove('hidden');
+            }
+        }
+
+        function hideFilterClientDropdown() {
+            setTimeout(() => {
+                document.getElementById('filterClientDropdown').classList.add('hidden');
+            }, 200);
+        }
+
     </script>
     
 {% endblock %}
