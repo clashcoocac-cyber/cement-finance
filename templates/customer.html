@@ -63,6 +63,7 @@
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Telefon</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Manzil</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Qolgan Qarz</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Amallar</th>
                             </tr>
                         </thead>
                         <tbody id="clientsTable" class="divide-y divide-gray-200 font-medium">
@@ -74,9 +75,17 @@
                         <td class="px-4 py-3 text-sm {% if customer.total_debt == 0 %}text-green-600{% else %}text-red-600 font-medium{% endif %}">
                             {{ customer.total_debt | format_currency }} so'm
                         </td>
-                        <!-- <td class="px-4 py-3 text-sm">
-                            <button onclick="deleteClient(1)" class="text-red-600 hover:text-red-800">O'chirish</button>
-                        </td> -->
+                        <td class="hidden">{{ customer.id }}</td>
+                        <td class="px-4 py-2 text-sm">
+                            <div class="flex space-x-2">
+                                <button onclick="editClient(this)" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200 flex items-center space-x-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium">O'zgartirish</span>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -90,6 +99,39 @@
                 </div>
             </div>
 </div>
+
+
+<!-- Edit Client Modal -->
+    <div id="editClientModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Mijozni O'zgartirish</h2>
+            <form action="{% url 'customer' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="_method" value="PUT">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mijoz Nomi</label>
+                    <input type="text" name="name" id="editClientName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefon Raqami</label>
+                    <input type="tel" name="phone" id="editClientPhone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Manzil</label>
+                    <input type="text" name="address" id="editClientAddress" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Qolgan qarz</label>
+                    <input type="text" name="debt" id="editClientDebt" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm">
+                </div>
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-bold text-sm">Saqlash</button>
+                    <a type="" onclick="cancelClientEdit()" class="text-center cursor-pointer flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-all duration-300 font-bold text-sm">Bekor Qilish</a>
+                </div>
+                <input type="hidden" id="editClientID" name="id">
+            </form>
+        </div>
+    </div>
 
 <script>
     function setFilter(){
@@ -126,6 +168,28 @@
     };
         html2pdf().set(opt).from(element).save();
 }
+
+function editClient(button) {
+    row = button.parentElement.parentElement.parentElement;
+    const name = row.children[0].innerText;
+    const phone = row.children[1].innerText;
+    const address = row.children[2].innerText;
+    const debt = row.children[3].innerText.replace(/\D/g, '');
+    const customer_id = row.children[4].innerText;
+
+    document.getElementById('editClientName').value = name;
+    document.getElementById('editClientPhone').value = phone;
+    document.getElementById('editClientAddress').value = address;
+    document.getElementById('editClientDebt').value = debt;
+    document.getElementById('editClientID').value = customer_id;
+    document.getElementById('editClientModal').classList.remove('hidden');
+}
+
+function cancelClientEdit() {
+    document.getElementById('editClientModal').classList.add('hidden');
+    currentEditingClientId = null;
+}
+
 </script>
 
 {% endblock %}

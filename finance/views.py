@@ -68,7 +68,21 @@ class CustomerView(LoginRequiredMixin, View):
         })
     
     def post(self, request):
+        if request.POST.get('_method') == 'PUT':
+            return self.put(request)
+        
         form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('customer')
+        print(form.errors)
+        return redirect('customer')
+
+
+    def put(self, request):
+        customer_id = request.POST.get('id')
+        customer = Customer.objects.get(id=customer_id)
+        form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
             form.save()
             return redirect('customer')
