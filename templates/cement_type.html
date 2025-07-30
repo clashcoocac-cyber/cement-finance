@@ -68,6 +68,15 @@
         </div>
 
         <script>
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                let formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+                e.target.value = formatted;
+            });
+        });
+
     function generatePDF() {
     const element = document.getElementById("cementList");
 
@@ -90,6 +99,6 @@
         }
     };
         html2pdf().set(opt).from(element).save();
-}
+    }
 </script>
 {% endblock %}

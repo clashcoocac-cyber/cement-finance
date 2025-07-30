@@ -58,11 +58,11 @@
                             <h3 class="text-lg font-bold text-gray-800 mb-4">Hisob-kitob</h3>
                             <div>
                                 <label class="block text-sm font-medium text-gray-800 mb-3">Jami Summa</label>
-                                <input type="number" id="grandTotal" class="py-3 w-full p-4 border border-blue-300 rounded-xl bg-blue-50 text-blue-800 font-bold shadow-sm text" readonly>
+                                <input type="text" id="grandTotal" class="py-3 w-full p-4 border border-blue-300 rounded-xl bg-blue-50 text-blue-800 font-bold shadow-sm text" readonly>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-800 mb-3">Qolgan Qarz</label>
-                                <input type="number" id="remainingDebt" class="py-3 w-full p-4 border border-red-300 rounded-xl bg-red-50 text-red-800 font-bold shadow-sm text" readonly>
+                                <input type="text" id="remainingDebt" class="py-3 w-full p-4 border border-red-300 rounded-xl bg-red-50 text-red-800 font-bold shadow-sm text" readonly>
                             </div>
                             <div class="pt-4">
                                 <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-8 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Buyurtma Qo'shish</button>
@@ -186,7 +186,6 @@
 
     </div>
     <script>
-
         // Calculate totals
         function calculateTotal() {
             const quantity = parseFloat(document.getElementById('quantity').value) || 0;
@@ -198,8 +197,11 @@
             const grandTotal = totalPrice - transportCost; // Transport cost is subtracted
             const remainingDebt = grandTotal - paidAmount;
             
-            document.getElementById('grandTotal').value = grandTotal;
-            document.getElementById('remainingDebt').value = remainingDebt;
+            const formattedGrandTotal = grandTotal.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            const formattedRemainingDebt = remainingDebt.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            
+            document.getElementById('grandTotal').value = formattedGrandTotal;
+            document.getElementById('remainingDebt').value = formattedRemainingDebt;
         }
 
         function setFilter(){
