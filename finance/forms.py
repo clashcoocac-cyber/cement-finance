@@ -23,18 +23,18 @@ class OrderForm(forms.ModelForm):
 
 
 class CustomerForm(forms.ModelForm):
-    total_debt = forms.IntegerField(required=False)
+    debt = forms.CharField(required=False, initial='0')
 
     class Meta:
         model = Customer
-        fields = ['name', 'phone', 'address', 'total_debt']
+        fields = ['name', 'phone', 'address', 'debt']
 
     def save(self, commit=True):
         customer = super().save(commit=False)
-        total_debt = self.cleaned_data.get('total_debt') or 0
+        debt = self.cleaned_data.get('debt').replace(',', '').replace(' ', '').replace('.', '') or 0
 
         if commit:
-            customer.total_debt = total_debt
+            customer.total_debt = int(debt)
             customer.save()
         return customer
 

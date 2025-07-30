@@ -22,7 +22,6 @@ class CustomerFilter(django_filters.FilterSet):
         fields = ['id', 'debt']
 
     def filter_debt(self, queryset, name, value):
-        print(value)
         if value == 'no_debt':
             return queryset.filter(total_debt=0)
         elif value == 'with_debt':
