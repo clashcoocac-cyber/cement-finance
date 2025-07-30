@@ -5,7 +5,7 @@ from django.views import View
 from django.contrib.auth.views import LoginView as LView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from finance.models import Customer, CementType, Order, PaymentHistory
-from finance.filters import OrderFilter
+from finance.filters import OrderFilter, PaymentFilter
 from finance.forms import CementTypeForm, OrderForm, CustomerForm, PaymentForm
 
 
@@ -79,7 +79,7 @@ class DebtView(LoginRequiredMixin, View):
         customers = Customer.objects.order_by('-total_debt')
         return render(request, self.template_name, context={
             'customers': customers,
-            'payments': PaymentHistory.objects.order_by('-paid_at'),
+            'payments': PaymentFilter(request.GET, PaymentHistory.objects.order_by('-paid_at')).qs,
             'total_amount': sum(payment.amount for payment in PaymentHistory.objects.all()),
             'today': date.today().strftime('%Y-%m-%d'),
             'page': 'debt',
