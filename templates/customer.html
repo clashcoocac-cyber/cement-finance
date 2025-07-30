@@ -59,6 +59,7 @@
                     <table class="w-full table-auto">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">#</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nomi</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Telefon</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Manzil</th>
@@ -69,6 +70,7 @@
                         <tbody id="clientsTable" class="divide-y divide-gray-200 font-medium">
                             {% for customer in customers %}
                     <tr>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ forloop.counter }}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">{{ customer.name }}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">{{ customer.phone }}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">{{ customer.address }}</td>
