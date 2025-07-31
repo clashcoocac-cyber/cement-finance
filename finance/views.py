@@ -73,6 +73,17 @@ class OrderEditView(LoginRequiredMixin, View):
             form.save()
             return redirect('dashboard')
         return redirect('dashboard')
+    
+    
+class OrderDeleteView(LoginRequiredMixin, View):
+
+    def get(self, request, pk):
+        order = Order.objects.get(id=pk)
+        customer = order.customer
+        customer.total_debt -= order.remaining_debt
+        customer.save()
+        order.delete()
+        return redirect('dashboard')
 
 
 class CustomerView(LoginRequiredMixin, View):

@@ -35,7 +35,10 @@
             <!-- Add New Order -->
             <div class="modern-card rounded-2xl p-8 mb-8 card-hover">
                 <h2 class="text-2xl font-bold text-blue-800 mb-2">Buyurtma O'zgaritish</h2>
-                <p class="mb-8">fdasd</p>
+                <p class="mb-8 text-sm">
+                    <span class="text-gray-600">{{ order.order_date|date:"d-m-Y" }}</span> /
+                    {{ order.customer.name }} / {{ order.cement_type.name }}
+                </p>
                 <form action="{% url 'order_edit' order.id %}" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {% csrf_token %}
                     <!-- Left side - Input fields -->
@@ -98,7 +101,7 @@
                             <div class="pt-4">
                                 <button type="submit" class="w-full mb-4 bg-gradient-to-r from-teal-600 to-green-600 text-white py-3 px-8 rounded-xl hover:from-teal-700 hover:to-green-700 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Saqlash</button>
                                 <button type="none" onclick="window.location.href = `{% url 'dashboard' %}`" class="w-full mb-4 bg-gray-500 text-white py-3 px-8 rounded-xl hover:bg-gray-600 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Bekor qilish</button>
-                                <button type="submit" class="w-full bg-red-600 text-white py-3 px-8 rounded-xl hover:bg-red-700 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">O'chirish</button>
+                                <button type="none" onclick="window.location.href = `{% url 'order_delete' order.id %}`" class="w-full bg-red-600 text-white py-3 px-8 rounded-xl hover:bg-red-700 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">O'chirish</button>
                             </div>
                         </div>
                     </div>
