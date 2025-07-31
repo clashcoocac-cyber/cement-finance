@@ -127,8 +127,9 @@
                     <input type="text" name="debt" id="editClientDebt" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm">
                 </div>
                 <div class="flex space-x-3 pt-4">
-                    <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-bold text-sm">Saqlash</button>
-                    <a type="" onclick="cancelClientEdit()" class="text-center cursor-pointer flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-all duration-300 font-bold text-sm">Bekor Qilish</a>
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold text-sm">Saqlash</button>
+                    <a type="" onclick="cancelClientEdit()" class="text-center cursor-pointer flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-all duration-300 font-semibold text-sm">Bekor Qilish</a>
+                    <a type="none" onclick="deleteCustomer(this)" class="text-center cursor-pointer flex-1 bg-red-500 text-white py-3 px-4 rounded-lg hover:bg-red-600 transition-all duration-300 font-semibold text-sm">O'chirish</a>
                 </div>
                 <input type="hidden" id="editClientID" name="id">
             </form>
@@ -136,6 +137,28 @@
     </div>
 
 <script>
+    function deleteCustomer(button) {
+        const confirmation = confirm("Mijozni o'chirishni xohlaysizmi?");
+        const customer_id = button.parentElement.parentElement.querySelector('input[name="id"]').value;
+
+        if (confirmation) {
+            console.log(`/customer/delete/${customer_id}/`);
+            fetch(`/customer/delete/${customer_id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert("Mijozni o'chirishda xatolik yuz berdi.");
+                }
+            })
+        }
+    }
+
     function setFilter(){
         const ClientName = document.getElementById('selectedFilterClientId');
         const ClientDebt = document.getElementById('filterClientDebt');

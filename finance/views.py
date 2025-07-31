@@ -1,4 +1,5 @@
 from datetime import date
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.db import models
 from django.views import View
@@ -74,7 +75,7 @@ class OrderEditView(LoginRequiredMixin, View):
             return redirect('dashboard')
         return redirect('dashboard')
     
-    
+
 class OrderDeleteView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
@@ -120,8 +121,14 @@ class CustomerView(LoginRequiredMixin, View):
         if form.is_valid():
             form.save()
             return redirect('customer')
-        print(form.errors)
-        return redirect('customer')
+            return redirect('customer')
+
+
+class CustomerDeleteView(LoginRequiredMixin, View):
+
+    def delete(self, request, pk):
+        Customer.objects.filter(id=pk).delete()
+        return HttpResponse(status=204)
 
 
 class DebtView(LoginRequiredMixin, View):
