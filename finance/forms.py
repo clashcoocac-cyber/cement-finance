@@ -41,15 +41,17 @@ class CustomerForm(forms.ModelForm):
 
 class PaymentForm(forms.ModelForm):
     customer_id = forms.IntegerField()
+    payment_amount = forms.CharField()
 
     class Meta:
         model = PaymentHistory
-        fields = ['customer_id', 'amount']
+        fields = ['customer_id', 'payment_amount']
 
     def save(self, commit=True):
         payment_history = super().save(commit=False)
         payment_history.customer = Customer.objects.get(id=self.cleaned_data['customer_id'])
         if commit:
+            payment_history.amount = float(self.cleaned_data['payment_amount'].replace(',', '').replace(' ', '').replace('.', ''))
             payment_history.save()
             customer = payment_history.customer
             customer.total_debt -= payment_history.amount

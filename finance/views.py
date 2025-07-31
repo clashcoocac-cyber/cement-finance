@@ -50,6 +50,29 @@ class OrderView(LoginRequiredMixin, View):
             form.save()
             return redirect('dashboard')
         return redirect('dashboard') 
+    
+
+class OrderEditView(LoginRequiredMixin, View):
+    template_name = 'order_edit.html'
+
+    def get(self, request, pk):
+        order = Order.objects.get(id=pk)
+        form = OrderForm(instance=order)
+        return render(request, self.template_name, context={
+            'form': form,
+            'order': order,
+            'customers': Customer.objects.all(),
+            'cement_types': CementType.objects.all(),
+            'page': 'dashboard',
+        })
+    
+    def post(self, request, pk):
+        order = Order.objects.get(id=pk)
+        form = OrderForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+        return redirect('dashboard')
 
 
 class CustomerView(LoginRequiredMixin, View):
