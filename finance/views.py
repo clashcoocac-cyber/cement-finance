@@ -76,7 +76,7 @@ class OrderView(LoginRequiredMixin, View):
             'total_paid_amount': total_paid_amount,
             'total_debt': total_debt,
             'page': 'dashboard',
-            'customer': combined_data[0]['customer'] if request.GET.get('customer_id') else None,
+            'customer': combined_data[0]['customer'] if request.GET.get('customer_id') and len(combined_data) > 0 else None,
         })
     
     def post(self, request):
