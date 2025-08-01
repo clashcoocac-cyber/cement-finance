@@ -43,6 +43,7 @@ class OrderView(LoginRequiredMixin, View):
             'order_date': order.order_date,
             'total_price': order.total_price,
             'total_sum': order.total_sum,
+            'road_cost': order.road_cost,
             'remaining_debt': order.remaining_debt,
         } for order in filtered_orders]
 
