@@ -186,12 +186,12 @@
                             <tr>
                                 <td colspan="3" class="px-6 py-4 text-sm font-bold text-gray-800">JAMI:</td>
                                 <td class="px-4 py-4 text-sm font-bold text-blue-600" id="totalQuantitySum"></td>
-                                <td class="px-4 py-4 text-sm font-bold text-gray-800">{{total_quantity | format_currency}}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-gray-800 whitespace-nowrap">{{total_quantity | format_currency}}</td>
                                 <td class="px-4 py-4 text-sm font-bold text-gray-800"></td>
                                 <td class="px-4 py-4 text-sm font-bold text-blue-600" id="totalTransportSum"></td>
-                                <td class="px-4 py-4 text-sm font-bold text-green-600" id="totalGrandSum">{{total_price| format_currency}}</td>
-                                <td class="px-4 py-4 text-sm font-bold text-green-600" id="totalPaidSum">{{total_paid_amount|format_currency}}</td>
-                                <td class="px-4 py-4 text-sm font-bold text-red-600" id="totalDebtSum">{{ total_debt | format_currency }}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-green-600 whitespace-nowrap" id="totalGrandSum">{{total_price| format_currency}}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-green-600 whitespace-nowrap" id="totalPaidSum">{{total_paid_amount|format_currency}}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-red-600 whitespace-nowrap" id="totalDebtSum">{{ total_debt | format_currency }}</td>
                             </tr>
                         </tfoot>
                     </table>
