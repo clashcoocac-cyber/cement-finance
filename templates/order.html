@@ -141,7 +141,7 @@
                         <tbody id="ordersTable" class="divide-y divide-gray-300 font-medium">
                             {% for order in orders %}
                                 <tr {% if order.type == 'order' %}onclick="window.location.href = `{% url 'order_edit' order.id %}`"{% endif %} class="hover:bg-gray-100 cursor-pointer">
-                                    <td class="px-4 py-3 text-gray-700" style="font-size: 0.8rem">
+                                    <td class="px-4 py-3 text-gray-700 whitespace-nowrap" style="font-size: 0.8rem">
                                         {{ order.order_date|date:"d-m" }}<br>{{ order.order_date|date:"Y" }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
