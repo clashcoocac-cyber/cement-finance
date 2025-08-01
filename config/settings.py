@@ -27,11 +27,23 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'django_filters',
+    'debug_toolbar',
 
     'finance.apps.FinanceConfig',
 ]
 
+INTERNAL_IPS = [
+    '127.0.0.1',
+    'localhost'
+]
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,  # Har doim ko‘rsat
+}
+
+
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

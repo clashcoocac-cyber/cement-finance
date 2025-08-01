@@ -1,5 +1,7 @@
+from debug_toolbar.toolbar import debug_toolbar_urls
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from config.settings import DEBUG
 from finance.views import (
     LoginView, LogoutView,
     OrderView, CustomerView, DebtView, CementTypeView, StatisticsView, CementTypeDeleteView,
@@ -23,3 +25,6 @@ urlpatterns = [
     path('cement-type/delete/<int:pk>/', CementTypeDeleteView.as_view(), name='cement_type_delete'),
     path('statistics/', StatisticsView.as_view(), name='stats'),
 ]
+
+if DEBUG is True:
+    urlpatterns += debug_toolbar_urls()

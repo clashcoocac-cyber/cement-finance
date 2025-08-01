@@ -29,9 +29,28 @@ class OrderView(LoginRequiredMixin, View):
     template_name = 'order.html'
 
     def get(self, request):
-        filtered_orders = OrderFilter(request.GET, queryset=Order.objects.order_by('-order_date')).qs
-        filtered_payments = PaymentFilter(request.GET, queryset=PaymentHistory.objects.order_by('-paid_at')).qs
+        filtered_orders = OrderFilter(request.GET, queryset=Order.objects.order_by('-order_date').select_related('customer', 'cement_type')).qs
+        filtered_payments = PaymentFilter(request.GET, queryset=PaymentHistory.objects.order_by('-paid_at').select_related('customer')).qs
 
+        # AGGREGATION: bitta queryda
+        order_aggs = filtered_orders.aggregate(
+            total_quantity=models.Sum('quantity'),
+            total_price=models.Sum('total_sum'),
+            total_paid_amount=models.Sum('paid_amount'),
+            total_debt=models.Sum('remaining_debt')
+        )
+        payment_aggs = filtered_payments.aggregate(total_paid=models.Sum('amount'))
+
+        total_quantity = order_aggs['total_quantity'] or 0
+        total_price = order_aggs['total_price'] or 0
+        total_paid_amount = (order_aggs['total_paid_amount'] or 0) + (payment_aggs['total_paid'] or 0)
+        total_debt = (order_aggs['total_debt'] or 0) - (payment_aggs['total_paid'] or 0)
+
+        # Faqat kerakli fieldlar
+        customers = Customer.objects.all()
+        cement_types = CementType.objects.all()
+
+        # Data tayyorlash (N+1 yo‘q, chunki select_related)
         order_data = [{
             'type': 'order',
             'id': order.id,
@@ -61,15 +80,10 @@ class OrderView(LoginRequiredMixin, View):
             reverse=True
         )
 
-        total_quantity = filtered_orders.aggregate(models.Sum('quantity'))['quantity__sum'] or 0 
-        total_price = filtered_orders.aggregate(models.Sum('total_sum'))['total_sum__sum'] or 0
-        total_paid_amount = (filtered_orders.aggregate(models.Sum('paid_amount'))['paid_amount__sum'] or 0) + (filtered_payments.aggregate(models.Sum('amount'))['amount__sum'] or 0)
-        total_debt = (filtered_orders.aggregate(models.Sum('remaining_debt'))['remaining_debt__sum'] or 0) - (filtered_payments.aggregate(models.Sum('amount'))['amount__sum'] or 0)
-
         return render(request, self.template_name, context={
             'orders': combined_data,
-            'customers': Customer.objects.all(),
-            'cement_types': CementType.objects.all(),
+            'customers': customers,
+            'cement_types': cement_types,
             'today': date.today().strftime('%Y-%m-%d'),
             'total_quantity': total_quantity,
             'total_price': total_price,
@@ -126,13 +140,14 @@ class CustomerView(LoginRequiredMixin, View):
 
     def get(self, request):
         customers = CustomerFilter(request.GET, Customer.objects.order_by('-total_debt')).qs
-        all_customers = Customer.objects.order_by('-total_debt')
+        all_customers = Customer.objects.order_by('-total_debt').values('id', 'name', 'phone', 'total_debt')
+        total_debt = customers.aggregate(total=models.Sum('total_debt'))['total'] or 0
 
         return render(request, self.template_name, context={
             'customers': customers,
             'all_customers': all_customers,
             'today': date.today().strftime('%Y-%m-%d'),
-            'total_debt': sum(customer.total_debt for customer in customers),
+            'total_debt': total_debt,
             'page': 'customer',
         })
     
