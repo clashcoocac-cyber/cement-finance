@@ -5,6 +5,7 @@ class Customer(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=20)
     address = models.CharField(max_length=255)
+    default_debt = models.IntegerField(default=0)
     total_debt = models.IntegerField(default=0)
 
     class Meta:

@@ -107,7 +107,18 @@
             <!-- Orders List -->
             <div id="invoice" class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
                 <div id="orderList" class="flex justify-between items-center mb-8">
-                    <h3 class="text-2xl font-bold text-gray-800">Buyurtmalar Ro'yxati</h3>
+                    <h3 class="text-2xl font-bold text-gray-800">
+                        Buyurtmalar Ro'yxati
+                        {% if customer %}
+                        <br>
+                        <span class="text-sm font-medium text-gray-1000">Mijoz: </span>
+                        <span class="text-sm font-semibold text-gray-1000">{{ customer.name }}</span>
+                        <span class="ps-4 text-sm font-medium text-gray-1000"> Eski qarz: </span>
+                        <span class="text-red-600 text-sm font-semibold">{{ customer.default_debt|format_currency }} so'm</span>
+                        {% else %}
+                        {% endif %}
+                    </h3>
+                    
                     <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-2xl text-sm hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 font-semibold">Hisobotni Yuklash</button>
                 </div>
                 <div class="overflow-x-auto">
@@ -129,7 +140,7 @@
                         </thead>
                         <tbody id="ordersTable" class="divide-y divide-gray-300 font-medium">
                             {% for order in orders %}
-                                <tr onclick="window.location.href = `{% url 'order_edit' order.id %}`" class="hover:bg-gray-100 cursor-pointer">
+                                <tr {% if order.type == 'order' %}onclick="window.location.href = `{% url 'order_edit' order.id %}`"{% endif %} class="hover:bg-gray-100 cursor-pointer">
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ order.order_date|date:"d-m-Y" }}
                                     </td>
@@ -137,10 +148,12 @@
                                         {{ order.customer.name }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
+                                        {% if order.cement_type %}
                                         <div class="flex items-center space-x-2">
                                             <span class="text-gray-700">{{ order.cement_type.name }}</span>
                                             <div class="w-4 h-4 rounded-full border-2 border-gray-300" style="background-color: {{ order.cement_type.color }}"></div>
                                         </div>
+                                        {% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ order.car_number }}

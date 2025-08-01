@@ -1,9 +1,11 @@
 from datetime import date
+from itertools import chain
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.db import models
 from django.views import View
 from django.contrib.auth.views import LoginView as LView
+from django.utils.timezone import make_naive
 from django.contrib.auth.mixins import LoginRequiredMixin
 from finance.models import Customer, CementType, Order, PaymentHistory
 from finance.filters import OrderFilter, CustomerFilter, PaymentFilter
@@ -28,13 +30,42 @@ class OrderView(LoginRequiredMixin, View):
 
     def get(self, request):
         filtered_orders = OrderFilter(request.GET, queryset=Order.objects.order_by('-order_date')).qs
-        total_quantity = filtered_orders.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+        filtered_payments = PaymentFilter(request.GET, queryset=PaymentHistory.objects.order_by('-paid_at')).qs
+
+        order_data = [{
+            'type': 'order',
+            'id': order.id,
+            'customer': order.customer if order.customer else '',
+            'cement_type': order.cement_type if order.cement_type else '',
+            'quantity': order.quantity,
+            'price_per_kg': order.price_per_kg,
+            'paid_amount': order.paid_amount,
+            'order_date': order.order_date,
+            'total_price': order.total_price,
+            'total_sum': order.total_sum,
+            'remaining_debt': order.remaining_debt,
+        } for order in filtered_orders]
+
+        payment_data = [{
+            'type': 'payment',
+            'customer': payment.customer if payment.customer else '',
+            'paid_amount': float(payment.amount),
+            'order_date': make_naive(payment.paid_at).date(),
+        } for payment in filtered_payments]
+
+        combined_data = sorted(
+            chain(order_data, payment_data),
+            key=lambda x: x['order_date'],
+            reverse=True
+        )
+
+        total_quantity = filtered_orders.aggregate(models.Sum('quantity'))['quantity__sum'] or 0 
         total_price = filtered_orders.aggregate(models.Sum('total_sum'))['total_sum__sum'] or 0
-        total_paid_amount = filtered_orders.aggregate(models.Sum('paid_amount'))['paid_amount__sum'] or 0
-        total_debt = filtered_orders.aggregate(models.Sum('remaining_debt'))['remaining_debt__sum'] or 0
+        total_paid_amount = filtered_orders.aggregate(models.Sum('paid_amount'))['paid_amount__sum'] or 0 + filtered_payments.aggregate(models.Sum('amount'))['amount__sum'] or 0
+        total_debt = filtered_orders.aggregate(models.Sum('remaining_debt'))['remaining_debt__sum'] or 0 - filtered_payments.aggregate(models.Sum('amount'))['amount__sum'] or 0
 
         return render(request, self.template_name, context={
-            'orders': filtered_orders,
+            'orders': combined_data,
             'customers': Customer.objects.all(),
             'cement_types': CementType.objects.all(),
             'today': date.today().strftime('%Y-%m-%d'),
@@ -43,6 +74,7 @@ class OrderView(LoginRequiredMixin, View):
             'total_paid_amount': total_paid_amount,
             'total_debt': total_debt,
             'page': 'dashboard',
+            'customer': combined_data[0]['customer'] if request.GET.get('customer_id') else None,
         })
     
     def post(self, request):

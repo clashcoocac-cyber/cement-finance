@@ -35,6 +35,7 @@ class CustomerForm(forms.ModelForm):
 
         if commit:
             customer.total_debt = int(debt)
+            customer.default_debt = int(debt)
             customer.save()
         return customer
 
