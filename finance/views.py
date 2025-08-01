@@ -61,8 +61,8 @@ class OrderView(LoginRequiredMixin, View):
 
         total_quantity = filtered_orders.aggregate(models.Sum('quantity'))['quantity__sum'] or 0 
         total_price = filtered_orders.aggregate(models.Sum('total_sum'))['total_sum__sum'] or 0
-        total_paid_amount = filtered_orders.aggregate(models.Sum('paid_amount'))['paid_amount__sum'] or 0 + filtered_payments.aggregate(models.Sum('amount'))['amount__sum'] or 0
-        total_debt = filtered_orders.aggregate(models.Sum('remaining_debt'))['remaining_debt__sum'] or 0 - filtered_payments.aggregate(models.Sum('amount'))['amount__sum'] or 0
+        total_paid_amount = (filtered_orders.aggregate(models.Sum('paid_amount'))['paid_amount__sum'] or 0) + (filtered_payments.aggregate(models.Sum('amount'))['amount__sum'] or 0)
+        total_debt = (filtered_orders.aggregate(models.Sum('remaining_debt'))['remaining_debt__sum'] or 0) - (filtered_payments.aggregate(models.Sum('amount'))['amount__sum'] or 0)
 
         return render(request, self.template_name, context={
             'orders': combined_data,
