@@ -200,6 +200,17 @@ class DebtView(LoginRequiredMixin, View):
             form.save()
             return redirect('debts')
         return redirect('debts')
+    
+
+class PaymentDeleteView(LoginRequiredMixin, View):
+
+    def get(self, request, pk):
+        payment = PaymentHistory.objects.get(id=pk)
+        customer = payment.customer
+        customer.total_debt += payment.amount
+        customer.save()
+        payment.delete()
+        return redirect('debts')
 
 
 class CementTypeView(LoginRequiredMixin, View):

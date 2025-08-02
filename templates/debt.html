@@ -69,21 +69,32 @@
             <table class="w-full table-auto">
                 <thead class="bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl">
                     <tr>
-                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana / Vaqt</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Mijoz</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">To'langan Summa</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">To'lov turi</th>
-                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Vaqt</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Amallar</th>
                     </tr>
                 </thead>
                 <tbody id="debtPaymentsTable" class="divide-y divide-gray-300 font-medium">
                     {% for payment in payments %}
             <tr>
-                <td class="px-6 py-4 text-sm text-gray-900">{{ payment.paid_at | date:"Y-m-d" }}</td>
+                <td class="px-6 py-4 text-sm text-gray-900">
+                    {{ payment.paid_at | date:"Y-m-d" }}
+                    <span class="ms-3">{{ payment.paid_at | time:"H:i" }}</span>
+                </td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.customer.name }}</td>
                 <td class="px-6 py-4 text-sm text-green-600 font-medium">{{ payment.amount | format_currency }} so'm</td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-500">{{ payment.paid_at | time:"H:i" }}</td>
+                
+                <td class="px-6 py-2 text-sm">
+                                <a href="{% url 'payment_delete' payment.id %}" onclick="return confirm(`Rostan ham o'chirmoqchimisiz`)" class="text-red-600 hover:text-red-800 px-3 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 flex items-center space-x-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium">O'chirish</span>
+                                </a>
+                        </td>
             </tr>
             {% endfor %}
                     {% if not payments %}
@@ -94,9 +105,8 @@
         </tbody>
         <tfoot class="bg-gradient-to-r from-green-100 to-emerald-100">
                             <tr>
-                                <td colspan="2" class="px-6 py-5 text-sm font-bold text-gray-800">JAMI:</td>
+                                <td colspan="3" class="px-6 py-5 text-sm font-bold text-gray-800">JAMI:</td>
                                 <td class="px-6 py-5 text-sm font-bold text-green-600" id="totalDebtPayments">{{ total_amount | format_currency }} so'm</td>
-                                <td class="px-6 py-5 text-sm font-bold text-gray-800"></td>
                                 <td class="px-6 py-5 text-sm font-bold text-gray-800"></td>
                             </tr>
                         </tfoot>
