@@ -191,7 +191,13 @@
                                 <td class="px-4 py-4 text-sm font-bold text-blue-600" id="totalTransportSum"></td>
                                 <td class="px-4 py-4 text-sm font-bold text-green-600 whitespace-nowrap" id="totalGrandSum">{{total_price| format_currency}}</td>
                                 <td class="px-4 py-4 text-sm font-bold text-green-600 whitespace-nowrap" id="totalPaidSum">{{total_paid_amount|format_currency}}</td>
-                                <td class="px-4 py-4 text-sm font-bold text-red-600 whitespace-nowrap" id="totalDebtSum">{{ total_debt | format_currency }}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-red-600 whitespace-nowrap" id="totalDebtSum">
+                                    {% if customer %} 
+                                        {{ customer.total_debt|format_currency }}
+                                    {% else %}
+                                        {{ total_debt|format_currency }}
+                                    {% endif %}
+                                </td>
                             </tr>
                         </tfoot>
                     </table>
