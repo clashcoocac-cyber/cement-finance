@@ -190,6 +190,7 @@ class DebtView(LoginRequiredMixin, View):
             'payments': PaymentFilter(request.GET, PaymentHistory.objects.order_by('-paid_at')).qs,
             'total_amount': sum(payment.amount for payment in PaymentHistory.objects.all()),
             'today': date.today().strftime('%Y-%m-%d'),
+            'payment_type_choices': PaymentHistory.PaymentTypeChoices.choices,
             'page': 'debt',
         })
     

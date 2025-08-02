@@ -46,7 +46,7 @@ class PaymentForm(forms.ModelForm):
 
     class Meta:
         model = PaymentHistory
-        fields = ['customer_id', 'payment_amount']
+        fields = ['customer_id', 'payment_amount', 'payment_type']
 
     def save(self, commit=True):
         payment_history = super().save(commit=False)
