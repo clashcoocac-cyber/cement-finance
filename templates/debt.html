@@ -9,14 +9,15 @@
         <form action="{% url 'debts' %}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             {% csrf_token %}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>
-                <select name="customer_id" id="debtClientSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm">
-                    <option value="">Mijozni tanlang</option>
-                    {% for customer in customers %}
-                        <option value="{{ customer.id }}">{{ customer.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                    <label class="block text-sm font-medium text-gray-800 mb-3">Mijoz</label>
+                    <div class="relative">
+                        <input value="{{ order.customer.name }}" type="text" required id="clientSearch" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm" placeholder="Mijoz qidirish..." oninput="searchClients()" onfocus="showClientDropdown()" onblur="hideClientDropdown()">
+                        <div id="clientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                            <!-- Client options will be populated here -->
+                        </div>
+                    </div>
+                    <input type="hidden" name="customer_id" id="selectedClientId" value="{{ order.customer.id }}">
+                </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">To'langan Summa</label>
                 <input type="text" name="payment_amount" id="paidDebtAmount" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" placeholder="0">
@@ -117,6 +118,56 @@
 
         window.location.search = urlParams.toString();
     }
+
+    function searchClients() {
+            const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
+            const dropdown = document.getElementById('clientDropdown');
+            
+            if (searchTerm.length === 0) {
+                dropdown.innerHTML = '';
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) || 
+                client.phone.includes(searchTerm)
+            );
+            
+            dropdown.innerHTML = '';
+            
+            if (filteredClients.length === 0) {
+                dropdown.innerHTML = '<div class="p-3 text-gray-500 text-sm">Mijoz topilmadi</div>';
+            } else {
+                filteredClients.forEach(client => {
+                    const option = document.createElement('div');
+                    option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
+                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.onclick = () => selectClient(client);
+                    dropdown.appendChild(option);
+                });
+            }
+            
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectClient(client) {
+            document.getElementById('clientSearch').value = client.name;
+            document.getElementById('selectedClientId').value = client.id;
+            document.getElementById('clientDropdown').classList.add('hidden');
+        }
+
+        function showClientDropdown() {
+            if (document.getElementById('clientSearch').value.length > 0) {
+                searchClients();
+            }
+        }
+
+        function hideClientDropdown() {
+            setTimeout(() => {
+                document.getElementById('clientDropdown').classList.add('hidden');
+            }, 200);
+        }
 
     function generatePDF() {
     const element = document.getElementById("invoice");
