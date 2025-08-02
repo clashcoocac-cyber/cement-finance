@@ -76,8 +76,9 @@ class Order(models.Model):
 class PaymentHistory(models.Model):
 
     class PaymentTypeChoices(models.TextChoices):
-        BANK = 'bank', 'Perechesleniya'
+        BANK = 'bank', "Pul ko'chirish"
         CASH = 'cash', 'Naqd'
+        CLICK = 'click', 'Click'
 
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='payment_histories')
     payment_type = models.CharField(
