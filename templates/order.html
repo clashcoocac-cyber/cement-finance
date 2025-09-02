@@ -127,7 +127,7 @@
                             <tr>
                                 <th class="px-3 py-4 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana</th>
                                 <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Mijoz</th>
-                                <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Sement Turi</th>
+                                <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Turi</th>
                                 <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Mashina</th>
                                 <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Miqdori</th>
                                 <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Narxi</th>
@@ -135,12 +135,12 @@
                                 <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Jami</th>
                                 <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Olingan</th>
                                 <th class="px-3 py-4 text-left text-sm font-bold text-gray-800">Qarz</th>
-                                <!-- <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Amallar</th> -->
                             </tr>
                         </thead>
-                        <tbody id="ordersTable" class="divide-y divide-gray-300 font-medium">
+                                                <tbody id="ordersTable" class="divide-y divide-gray-300 font-medium">
                             {% for order in orders %}
-                                <tr {% if order.type == 'order' %}onclick="window.location.href = `{% url 'order_edit' order.id %}`"{% endif %} class="hover:bg-gray-100 cursor-pointer">
+                                <tr {% if order.type == 'order' %}onclick="window.location.href = `{% url 'order_edit' order.id %}`"{% endif %} 
+                                    class="hover:bg-gray-100 cursor-pointer {% if order.type == 'payment' %}bg-green-50 hover:bg-green-100{% endif %}">
                                     <td class="px-4 py-3 text-gray-700 whitespace-nowrap" style="font-size: 0.8rem">
                                         {{ order.order_date|date:"d-m" }}<br>{{ order.order_date|date:"Y" }}
                                     </td>
@@ -148,37 +148,62 @@
                                         {{ order.customer.name }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                        {% if order.cement_type %}
+                                        {% if order.type == 'order' and order.cement_type %}
                                         <div class="flex items-center space-x-2">
                                             <span class="text-gray-700">{{ order.cement_type.name }}</span>
                                             <div class="w-4 h-4 rounded-full border-2 border-gray-300" style="background-color: {{ order.cement_type.color }}"></div>
                                         </div>
+                                        {% elif order.type == 'payment' %}
+                                        <span class="text-green-600 font-semibold">To'lov</span>
                                         {% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                        {{ order.car_number }}
+                                        {% if order.type == 'order' %}
+                                            {{ order.car_number }}
+                                        {% else %}
+                                            <span class="text-green-600">-</span>
+                                        {% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                                        {{ order.quantity|format_currency }}
+                                        {% if order.type == 'order' %}
+                                            {{ order.quantity|format_currency }}
+                                        {% else %}
+                                            <span class="text-green-600">-</span>
+                                        {% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                                        {{ order.price_per_kg|format_currency }}
+                                        {% if order.type == 'order' %}
+                                            {{ order.price_per_kg|format_currency }}
+                                        {% else %}
+                                            <span class="text-green-600">-</span>
+                                        {% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                                        {{ order.road_cost|format_currency }}
+                                        {% if order.type == 'order' %}
+                                            {{ order.road_cost|format_currency }}
+                                        {% else %}
+                                            <span class="text-green-600">-</span>
+                                        {% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                                        {{ order.total_sum | format_currency }}
+                                        {% if order.type == 'order' %}
+                                            {{ order.total_sum | format_currency }}
+                                        {% else %}
+                                            <span class="text-green-600 font-semibold"></span>
+                                        {% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                                        {{ order.paid_amount | format_currency }}
+                                        {% if order.type == 'order' %}
+                                            {{ order.paid_amount | format_currency }}
+                                        {% else %}
+                                            <span class="text-green-600 font-semibold">{{ order.paid_amount | format_currency }}</span>
+                                        {% endif %}
                                     </td>
-                                    <td class="px-4 py-3 text-sm text-red-700 whitespace-nowrap">
-                                        {{ order.remaining_debt | format_currency }}
+                                    <td class="px-4 py-3 text-sm whitespace-nowrap {% if order.type == 'order' %}text-red-700{% else %}text-green-700{% endif %}">
+                                        {% if order.type == 'order' %}
+                                            {{ order.remaining_debt | format_currency }}
+                                        {% endif %}
                                     </td>
-                                    <!-- <td class="px-4 py-3 text-sm">
-                                        <button onclick="deleteOrder(1753773729122)" class="text-red-600 hover:text-red-800">O'chirish</button>
-                                    </td> -->
                                 </tr>
                             {% endfor %}
                         </tbody>

@@ -28,6 +28,63 @@ class LogoutView(View):
 class OrderView(LoginRequiredMixin, View):
     template_name = 'order.html'
 
+    def _get_payment_data(self, customer_id, date_from=None, date_to=None):
+        """Get payment data for a specific customer with optional date filtering"""
+        payments = PaymentHistory.objects.filter(customer_id=customer_id)
+        
+        # Apply date filtering if provided
+        if date_from:
+            payments = payments.filter(paid_at__date__gte=date_from)
+        if date_to:
+            payments = payments.filter(paid_at__date__lte=date_to)
+            
+        return payments.order_by('-paid_at')
+
+    def _prepare_combined_data(self, orders, payments, customer):
+        """Combine order and payment data into a single list"""
+        combined_data = []
+        
+        # Add orders
+        for order in orders:
+            combined_data.append({
+                'type': 'order',
+                'id': order.id,
+                'customer': order.customer if order.customer else '',
+                'cement_type': order.cement_type if order.cement_type else '',
+                'quantity': order.quantity,
+                'price_per_kg': order.price_per_kg,
+                'paid_amount': order.paid_amount,
+                'order_date': order.order_date,
+                'total_price': order.total_price,
+                'total_sum': order.total_sum,
+                'road_cost': order.road_cost,
+                'car_number': order.car_number,
+                'remaining_debt': order.remaining_debt,
+            })
+        
+        # Add payments
+        for payment in payments:
+            combined_data.append({
+                'type': 'payment',
+                'id': payment.id,
+                'customer': payment.customer,
+                'cement_type': '',  # Payments don't have cement type
+                'quantity': 0,  # Payments don't have quantity
+                'price_per_kg': 0,  # Payments don't have price
+                'paid_amount': payment.amount,  # Negative because it reduces received amount
+                'order_date': payment.paid_at.date(),
+                'total_price': 0,  # Payments don't have total price
+                'total_sum': 0,  # Payments don't contribute to total sum
+                'road_cost': 0,  # Payments don't have road cost
+                'car_number': '',  # Payments don't have car number
+                'remaining_debt': -payment.amount,  # Negative because it reduces debt
+                'payment_type': payment.payment_type,
+            })
+        
+        # Sort by date (newest first)
+        combined_data.sort(key=lambda x: x['order_date'], reverse=True)
+        return combined_data
+
     def get(self, request):
         # Prepare query parameters with default dates if needed
         query_params = request.GET.copy()
@@ -41,37 +98,68 @@ class OrderView(LoginRequiredMixin, View):
             queryset=Order.objects.order_by('-order_date').select_related('customer', 'cement_type')
         ).qs
 
-        # Calculate order totals
-        order_aggs = filtered_orders.aggregate(
-            total_quantity=models.Sum('quantity'),
-            total_price=models.Sum('total_sum'),
-            total_paid_amount=models.Sum('paid_amount'),
-            total_debt=models.Sum('remaining_debt')
-        )
+        # Get customer if customer_id is provided
+        customer = None
+        if request.GET.get('customer_id'):
+            try:
+                customer = Customer.objects.get(id=request.GET.get('customer_id'))
+            except Customer.DoesNotExist:
+                pass
 
-        totals = {
-            'total_quantity': order_aggs['total_quantity'] or 0,
-            'total_price': order_aggs['total_price'] or 0,
-            'total_paid_amount': order_aggs['total_paid_amount'] or 0,
-            'total_debt': order_aggs['total_debt'] or 0,
-        }
+        # If customer is specified, get payment data and combine
+        if customer:
+            # Get payment data for the same date range
+            date_from = query_params.get('date_from')
+            date_to = query_params.get('date_to')
+            payments = self._get_payment_data(customer.id, date_from, date_to)
+            
+            # Combine orders and payments
+            combined_data = self._prepare_combined_data(filtered_orders, payments, customer)
+            
+            # Calculate totals including payments
+            total_quantity = sum(item['quantity'] for item in combined_data if item['type'] == 'order')
+            total_price = sum(item['total_sum'] for item in combined_data if item['type'] == 'order')  # Only orders contribute to total price
+            total_paid_amount = sum(item['paid_amount'] for item in combined_data if item['type'] == 'order') + sum(item['paid_amount'] for item in combined_data if item['type'] == 'payment')  # Orders + negative payments = net received
+            total_debt = customer.total_debt  # Use customer's actual total debt
+            
+            order_data = combined_data
+        else:
+            # Calculate order totals only
+            order_aggs = filtered_orders.aggregate(
+                total_quantity=models.Sum('quantity'),
+                total_price=models.Sum('total_sum'),
+                total_paid_amount=models.Sum('paid_amount'),
+                total_debt=models.Sum('remaining_debt')
+            )
 
-        # Prepare order data for template
-        order_data = [{
-            'type': 'order',
-            'id': order.id,
-            'customer': order.customer if order.customer else '',
-            'cement_type': order.cement_type if order.cement_type else '',
-            'quantity': order.quantity,
-            'price_per_kg': order.price_per_kg,
-            'paid_amount': order.paid_amount,
-            'order_date': order.order_date,
-            'total_price': order.total_price,
-            'total_sum': order.total_sum,
-            'road_cost': order.road_cost,
-            'car_number': order.car_number,
-            'remaining_debt': order.remaining_debt,
-        } for order in filtered_orders]
+            totals = {
+                'total_quantity': order_aggs['total_quantity'] or 0,
+                'total_price': order_aggs['total_price'] or 0,
+                'total_paid_amount': order_aggs['total_paid_amount'] or 0,
+                'total_debt': order_aggs['total_debt'] or 0,
+            }
+
+            # Prepare order data for template
+            order_data = [{
+                'type': 'order',
+                'id': order.id,
+                'customer': order.customer if order.customer else '',
+                'cement_type': order.cement_type if order.cement_type else '',
+                'quantity': order.quantity,
+                'price_per_kg': order.price_per_kg,
+                'paid_amount': order.paid_amount,
+                'order_date': order.order_date,
+                'total_price': order.total_price,
+                'total_sum': order.total_sum,
+                'road_cost': order.road_cost,
+                'car_number': order.car_number,
+                'remaining_debt': order.remaining_debt,
+            } for order in filtered_orders]
+            
+            total_quantity = totals['total_quantity']
+            total_price = totals['total_price']
+            total_paid_amount = totals['total_paid_amount']
+            total_debt = totals['total_debt']
 
         # Prepare context and render
         context = {
@@ -79,12 +167,12 @@ class OrderView(LoginRequiredMixin, View):
             'customers': Customer.objects.all(),
             'cement_types': CementType.objects.all(),
             'today': date.today().strftime('%Y-%m-%d'),
-            'total_quantity': totals['total_quantity'],
-            'total_price': totals['total_price'],
-            'total_paid_amount': totals['total_paid_amount'],
-            'total_debt': totals['total_debt'],
+            'total_quantity': total_quantity,
+            'total_price': total_price,
+            'total_paid_amount': total_paid_amount,
+            'total_debt': total_debt,
             'page': 'dashboard',
-            'customer': order_data[0]['customer'] if request.GET.get('customer_id') and len(order_data) > 0 else None,
+            'customer': customer,
         }
         
         return render(request, self.template_name, context=context)
