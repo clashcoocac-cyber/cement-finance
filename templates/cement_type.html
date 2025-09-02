@@ -28,9 +28,15 @@
                 </form>
             </div>
             <div id="cementList" class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
-                <div class="flex justify-between items-center mb-8">
+                <div class="flex justify-between items-center mb-1">
                     <h3 class="text-2xl font-bold text-gray-800 mb-8">Sement Turlari Ro'yxati</h3>
                     <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Hisobotni Yuklash</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Oyni tanlang</label>
+                        <input onchange="setFilter()" value="{{ selected_month }}" type="month" name="month" id="filterMonth" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm">
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto">
@@ -81,6 +87,17 @@
                 e.target.value = formatted;
             });
         });
+
+        function setFilter() {
+            const month = document.getElementById('filterMonth').value;
+            const currentUrl = new URL(window.location);
+            if (month) {
+                currentUrl.searchParams.set('month', month);
+            } else {
+                currentUrl.searchParams.delete('month');
+            }
+            window.location.href = currentUrl.toString();
+        }
 
     function generatePDF() {
     const element = document.getElementById("cementList");

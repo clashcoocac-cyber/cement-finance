@@ -29,13 +29,19 @@ class OrderView(LoginRequiredMixin, View):
     template_name = 'order.html'
 
     def get(self, request):
-        query_params = request.GET.copy()  # QueryDict ni mutable qilish
+        # Prepare query parameters with default dates if needed
+        query_params = request.GET.copy()
         if not query_params.get('customer_id'):
             query_params['date_from'] = query_params.get('date_from') or date.today()
             query_params['date_to'] = query_params.get('date_to') or date.today()
 
-        filtered_orders = OrderFilter(query_params, queryset=Order.objects.order_by('-order_date').select_related('customer', 'cement_type')).qs
+        # Get filtered orders with related data
+        filtered_orders = OrderFilter(
+            query_params, 
+            queryset=Order.objects.order_by('-order_date').select_related('customer', 'cement_type')
+        ).qs
 
+        # Calculate order totals
         order_aggs = filtered_orders.aggregate(
             total_quantity=models.Sum('quantity'),
             total_price=models.Sum('total_sum'),
@@ -43,14 +49,14 @@ class OrderView(LoginRequiredMixin, View):
             total_debt=models.Sum('remaining_debt')
         )
 
-        total_quantity = order_aggs['total_quantity'] or 0
-        total_price = order_aggs['total_price'] or 0
-        total_paid_amount = order_aggs['total_paid_amount'] or 0
-        total_debt = order_aggs['total_debt'] or 0
+        totals = {
+            'total_quantity': order_aggs['total_quantity'] or 0,
+            'total_price': order_aggs['total_price'] or 0,
+            'total_paid_amount': order_aggs['total_paid_amount'] or 0,
+            'total_debt': order_aggs['total_debt'] or 0,
+        }
 
-        customers = Customer.objects.all()
-        cement_types = CementType.objects.all()
-
+        # Prepare order data for template
         order_data = [{
             'type': 'order',
             'id': order.id,
@@ -67,24 +73,26 @@ class OrderView(LoginRequiredMixin, View):
             'remaining_debt': order.remaining_debt,
         } for order in filtered_orders]
 
-        return render(request, self.template_name, context={
+        # Prepare context and render
+        context = {
             'orders': order_data,
-            'customers': customers,
-            'cement_types': cement_types,
+            'customers': Customer.objects.all(),
+            'cement_types': CementType.objects.all(),
             'today': date.today().strftime('%Y-%m-%d'),
-            'total_quantity': total_quantity,
-            'total_price': total_price,
-            'total_paid_amount': total_paid_amount,
-            'total_debt': total_debt,
+            'total_quantity': totals['total_quantity'],
+            'total_price': totals['total_price'],
+            'total_paid_amount': totals['total_paid_amount'],
+            'total_debt': totals['total_debt'],
             'page': 'dashboard',
             'customer': order_data[0]['customer'] if request.GET.get('customer_id') and len(order_data) > 0 else None,
-        })
+        }
+        
+        return render(request, self.template_name, context=context)
     
     def post(self, request):
         form = OrderForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('dashboard')
         return redirect('dashboard') 
     
 
@@ -126,17 +134,20 @@ class CustomerView(LoginRequiredMixin, View):
     template_name = 'customer.html'
 
     def get(self, request):
+        # Get filtered customers and calculate totals
         customers = CustomerFilter(request.GET, Customer.objects.order_by('-total_debt')).qs
         all_customers = Customer.objects.order_by('-total_debt').values('id', 'name', 'phone', 'total_debt')
         total_debt = customers.aggregate(total=models.Sum('total_debt'))['total'] or 0
 
-        return render(request, self.template_name, context={
+        # Prepare context and render
+        context = {
             'customers': customers,
             'all_customers': all_customers,
             'today': date.today().strftime('%Y-%m-%d'),
             'total_debt': total_debt,
             'page': 'customer',
-        })
+        }
+        return render(request, self.template_name, context=context)
     
     def post(self, request):
         if request.POST.get('_method') == 'PUT':
@@ -145,10 +156,7 @@ class CustomerView(LoginRequiredMixin, View):
         form = CustomerForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('customer')
-        print(form.errors)
         return redirect('customer')
-
 
     def put(self, request):
         customer_id = request.POST.get('id')
@@ -156,8 +164,7 @@ class CustomerView(LoginRequiredMixin, View):
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
             form.save()
-            return redirect('customer')
-            return redirect('customer')
+        return redirect('customer')
 
 
 class CustomerDeleteView(LoginRequiredMixin, View):
@@ -170,22 +177,28 @@ class CustomerDeleteView(LoginRequiredMixin, View):
 class DebtView(LoginRequiredMixin, View):
     template_name = 'debt.html'
 
-    def get(self, request):
+    def _get_context_data(self, request):
+        """Prepare context data for debt view"""
         customers = Customer.objects.order_by('-total_debt')
-        return render(request, self.template_name, context={
+        payments = PaymentFilter(request.GET, PaymentHistory.objects.order_by('-paid_at')).qs
+        
+        return {
             'customers': customers,
-            'payments': PaymentFilter(request.GET, PaymentHistory.objects.order_by('-paid_at')).qs,
+            'payments': payments,
             'total_amount': sum(payment.amount for payment in PaymentHistory.objects.all()),
             'today': date.today().strftime('%Y-%m-%d'),
             'payment_type_choices': PaymentHistory.PaymentTypeChoices.choices,
             'page': 'debt',
-        })
+        }
+
+    def get(self, request):
+        context = self._get_context_data(request)
+        return render(request, self.template_name, context=context)
     
     def post(self, request):
         form = PaymentForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('debts')
         return redirect('debts')
     
 
@@ -203,22 +216,59 @@ class PaymentDeleteView(LoginRequiredMixin, View):
 class CementTypeView(LoginRequiredMixin, View):
     template_name = 'cement_type.html'
 
-    def get(self, request):
-        cement_types = CementType.objects.annotate(
-            total_quantity=models.Sum('orders__quantity')
+    def _parse_month_parameter(self, month_str):
+        """Parse month parameter and return year, month tuple"""
+        try:
+            year, month_num = month_str.split('-')
+            return int(year), int(month_num)
+        except ValueError:
+            today = date.today()
+            return today.year, today.month
+
+    def _get_month_filter_annotation(self, year, month):
+        """Create month filter annotation for cement types"""
+        return models.Sum(
+            models.Case(
+                models.When(
+                    orders__order_date__year=year,
+                    orders__order_date__month=month,
+                    then='orders__quantity'
+                ),
+                default=0
+            )
         )
-        return render(request, self.template_name, context={
+
+    def _get_context_data(self, cement_types, selected_month):
+        """Prepare context data for template"""
+        return {
             'cement_types': cement_types,
             'colors': CementType.ColorChoices,
             'total_quantity': sum(cement_type.total_quantity or 0 for cement_type in cement_types),
             'page': 'cement_type',
-        })
+            'selected_month': selected_month,
+        }
+
+    def get(self, request):
+        # Get month parameter with fallback to current month
+        current_month = date.today().strftime('%Y-%m')
+        selected_month = request.GET.get('month') or current_month
+        
+        # Parse month for filtering
+        year, month = self._parse_month_parameter(selected_month)
+        
+        # Get cement types with month-filtered quantities
+        cement_types = CementType.objects.annotate(
+            total_quantity=self._get_month_filter_annotation(year, month)
+        )
+        
+        # Prepare context and render
+        context = self._get_context_data(cement_types, selected_month)
+        return render(request, self.template_name, context=context)
     
     def post(self, request):
         form = CementTypeForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('cement_type')
         return redirect('cement_type')
     
 class CementTypeDeleteView(LoginRequiredMixin, View):
@@ -231,22 +281,39 @@ class CementTypeDeleteView(LoginRequiredMixin, View):
 class StatisticsView(LoginRequiredMixin, View):
     template_name = 'stats.html'
 
-    def get(self, request):
+    def _calculate_statistics(self):
+        """Calculate all statistics for the dashboard"""
         orders = Order.objects.all()
-        total_orders = orders.count()
-        total_revenue = sum(order.total_price for order in orders)
-        total_debt = sum(customer.total_debt for customer in Customer.objects.all())
-        total_quantity = sum(order.quantity for order in orders)
+        customers = Customer.objects.all()
+        
+        return {
+            'total_orders': orders.count(),
+            'total_revenue': sum(order.total_price for order in orders),
+            'total_debt': sum(customer.total_debt for customer in customers),
+            'total_quantity': sum(order.quantity for order in orders),
+        }
 
-        most_cement_types = CementType.objects.annotate(
+    def _get_top_cement_types(self):
+        """Get top 3 cement types by total quantity"""
+        return CementType.objects.annotate(
             total_quantity=models.Sum('orders__quantity')
         ).order_by('-total_quantity')[:3]
+
+    def get(self, request):
+        # Calculate statistics
+        stats = self._calculate_statistics()
         
-        return render(request, self.template_name, context={
-            'total_orders': total_orders,
-            'total_revenue': total_revenue - total_debt,
-            'total_debt': total_debt,
-            'total_quantity': total_quantity,
+        # Get top cement types
+        most_cement_types = self._get_top_cement_types()
+        
+        # Prepare context and render
+        context = {
+            'total_orders': stats['total_orders'],
+            'total_revenue': stats['total_revenue'] - stats['total_debt'],
+            'total_debt': stats['total_debt'],
+            'total_quantity': stats['total_quantity'],
             'most_cement_types': most_cement_types,
             'page': 'stats',
-        })
+        }
+        
+        return render(request, self.template_name, context=context)
