@@ -68,7 +68,7 @@
                         </thead>
                         <tbody id="clientsTable" class="divide-y divide-gray-200 font-medium">
                             {% for customer in customers %}
-                    <tr>
+                    <tr onclick="window.location.href = `{% url 'dashboard' %}?customer_id={{ customer.id }}#invoice`" class="cursor-pointer">
                         <td class="px-4 py-3 text-sm text-gray-900">{{ forloop.counter }}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">{{ customer.name }}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">{{ customer.phone }}</td>

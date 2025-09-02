@@ -29,28 +29,28 @@ class OrderView(LoginRequiredMixin, View):
     template_name = 'order.html'
 
     def get(self, request):
-        filtered_orders = OrderFilter(request.GET, queryset=Order.objects.order_by('-order_date').select_related('customer', 'cement_type')).qs
-        filtered_payments = PaymentFilter(request.GET, queryset=PaymentHistory.objects.order_by('-paid_at').select_related('customer')).qs
+        query_params = request.GET.copy()  # QueryDict ni mutable qilish
+        if not query_params.get('customer_id'):
+            query_params['date_from'] = query_params.get('date_from') or date.today()
+            query_params['date_to'] = query_params.get('date_to') or date.today()
 
-        # AGGREGATION: bitta queryda
+        filtered_orders = OrderFilter(query_params, queryset=Order.objects.order_by('-order_date').select_related('customer', 'cement_type')).qs
+
         order_aggs = filtered_orders.aggregate(
             total_quantity=models.Sum('quantity'),
             total_price=models.Sum('total_sum'),
             total_paid_amount=models.Sum('paid_amount'),
             total_debt=models.Sum('remaining_debt')
         )
-        payment_aggs = filtered_payments.aggregate(total_paid=models.Sum('amount'))
 
         total_quantity = order_aggs['total_quantity'] or 0
         total_price = order_aggs['total_price'] or 0
-        total_paid_amount = (order_aggs['total_paid_amount'] or 0) + (payment_aggs['total_paid'] or 0)
-        total_debt = (order_aggs['total_debt'] or 0) - (payment_aggs['total_paid'] or 0)
+        total_paid_amount = order_aggs['total_paid_amount'] or 0
+        total_debt = order_aggs['total_debt'] or 0
 
-        # Faqat kerakli fieldlar
         customers = Customer.objects.all()
         cement_types = CementType.objects.all()
 
-        # Data tayyorlash (N+1 yo‘q, chunki select_related)
         order_data = [{
             'type': 'order',
             'id': order.id,
@@ -67,21 +67,8 @@ class OrderView(LoginRequiredMixin, View):
             'remaining_debt': order.remaining_debt,
         } for order in filtered_orders]
 
-        payment_data = [{
-            'type': 'payment',
-            'customer': payment.customer if payment.customer else '',
-            'paid_amount': float(payment.amount),
-            'order_date': make_naive(payment.paid_at).date(),
-        } for payment in filtered_payments]
-
-        combined_data = sorted(
-            chain(order_data, payment_data),
-            key=lambda x: x['order_date'],
-            reverse=True
-        )
-
         return render(request, self.template_name, context={
-            'orders': combined_data,
+            'orders': order_data,
             'customers': customers,
             'cement_types': cement_types,
             'today': date.today().strftime('%Y-%m-%d'),
@@ -90,7 +77,7 @@ class OrderView(LoginRequiredMixin, View):
             'total_paid_amount': total_paid_amount,
             'total_debt': total_debt,
             'page': 'dashboard',
-            'customer': combined_data[0]['customer'] if request.GET.get('customer_id') and len(combined_data) > 0 else None,
+            'customer': order_data[0]['customer'] if request.GET.get('customer_id') and len(order_data) > 0 else None,
         })
     
     def post(self, request):

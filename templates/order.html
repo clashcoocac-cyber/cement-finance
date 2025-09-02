@@ -95,11 +95,11 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-blue-600 mb-3">Sana (dan)</label>
-                        <input type="date" onchange="setFilter()" value="{{ request.GET.date_from }}" name="date_from" id="filterDateFrom" class="text-sm py-3 w-full p-4 border-2 border-white/30 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/50 backdrop-blur-sm transition-all duration-300 font-medium" onchange="filterOrders()">
+                        <input type="date" onchange="setFilter()" value="{% if request.GET.date_from %}{{ request.GET.date_from }}{% else %}{{ today }}{% endif %}" name="date_from" id="filterDateFrom" class="text-sm py-3 w-full p-4 border-2 border-white/30 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/50 backdrop-blur-sm transition-all duration-300 font-medium" onchange="filterOrders()">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-blue-600 mb-3">Sana (gacha)</label>
-                        <input type="date" onchange="setFilter()" value="{{ request.GET.date_to }}" name="date_to" id="filterDateTo" class="text-sm py-3 w-full p-4 border-2 border-white/30 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/50 backdrop-blur-sm transition-all duration-300 font-medium" onchange="filterOrders()">
+                        <input type="date" onchange="setFilter()" value="{% if request.GET.date_to %}{{ request.GET.date_to }}{% else %}{{ today }}{% endif %}" name="date_to" id="filterDateTo" class="text-sm py-3 w-full p-4 border-2 border-white/30 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/50 backdrop-blur-sm transition-all duration-300 font-medium" onchange="filterOrders()">
                     </div>
                 </div>
             </div>
