@@ -99,24 +99,38 @@ class OrderView(LoginRequiredMixin, View):
 class OrderEditView(LoginRequiredMixin, View):
     template_name = 'order_edit.html'
 
-    def get(self, request, pk):
-        order = Order.objects.get(id=pk)
-        form = OrderForm(instance=order)
-        return render(request, self.template_name, context={
+    def _get_context_data(self, form, order):
+        """Prepare context data for order edit view"""
+        return {
             'form': form,
             'order': order,
             'customers': Customer.objects.all(),
             'cement_types': CementType.objects.all(),
             'page': 'dashboard',
-        })
+        }
+
+    def get(self, request, pk):
+        try:
+            order = Order.objects.get(id=pk)
+            form = OrderForm(instance=order)
+            context = self._get_context_data(form, order)
+            return render(request, self.template_name, context=context)
+        except Order.DoesNotExist:
+            return redirect('dashboard')
     
     def post(self, request, pk):
-        order = Order.objects.get(id=pk)
-        form = OrderForm(request.POST, instance=order)
-        if form.is_valid():
-            form.save()
+        try:
+            order = Order.objects.get(id=pk)
+            form = OrderForm(request.POST, instance=order)
+            if form.is_valid():
+                form.save()
+                return redirect('dashboard')
+            else:
+                # If form is invalid, render the form with errors
+                context = self._get_context_data(form, order)
+                return render(request, self.template_name, context=context)
+        except Order.DoesNotExist:
             return redirect('dashboard')
-        return redirect('dashboard')
     
 
 class OrderDeleteView(LoginRequiredMixin, View):
