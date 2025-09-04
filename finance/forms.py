@@ -84,13 +84,21 @@ class CustomerForm(forms.ModelForm):
         model = Customer
         fields = ['name', 'phone', 'address', 'debt']
 
-    def save(self, commit=True):
+    def save(self, commit=True, update=False):
         customer = super().save(commit=False)
         debt = self.cleaned_data.get('debt').replace(',', '').replace(' ', '').replace('.', '') or 0
 
         if commit:
-            customer.total_debt = int(debt)
-            customer.default_debt = int(debt)
+            if update:
+                old_debt = customer.default_debt
+                old_total_debt = customer.total_debt
+                debt_difference = int(debt) - old_total_debt
+                customer.total_debt = int(debt)
+                customer.default_debt = old_debt + debt_difference
+                customer.save()
+            else:
+                customer.total_debt = int(debt)
+                customer.default_debt = int(debt)
             customer.save()
         return customer
 
