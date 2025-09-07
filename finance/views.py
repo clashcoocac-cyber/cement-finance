@@ -94,7 +94,7 @@ class OrderView(LoginRequiredMixin, View):
         # Get filtered orders
         filtered_orders = OrderFilter(
             query_params, 
-            queryset=Order.objects.order_by('-order_date').select_related('customer', 'cement_type')
+            queryset=Order.objects.order_by('order_date').select_related('customer', 'cement_type')
         ).qs
 
         # Get customer if specified
@@ -273,7 +273,7 @@ class DebtView(LoginRequiredMixin, View):
         context = {
             'customers': customers,
             'payments': payments,
-            'total_amount': sum(payment.amount for payment in PaymentHistory.objects.all()),
+            'total_amount': sum(payment.amount for payment in payments),
             'today': date.today().strftime('%Y-%m-%d'),
             'payment_type_choices': PaymentHistory.PaymentTypeChoices.choices,
             'page': 'debt',
