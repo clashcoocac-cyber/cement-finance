@@ -81,7 +81,7 @@ class OrderView(LoginRequiredMixin, View):
             })
         
         # Sort by date (newest first)
-        combined_data.sort(key=lambda x: x['order_date'], reverse=True)
+        combined_data.sort(key=lambda x: x['order_date'])
         return combined_data
 
     def get(self, request):
