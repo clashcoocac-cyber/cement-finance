@@ -8,7 +8,7 @@ from django.utils.timezone import make_naive
 from django.contrib.auth.mixins import LoginRequiredMixin
 from finance.models import Customer, CementType, Order, PaymentHistory
 from finance.filters import OrderFilter, CustomerFilter, PaymentFilter
-from finance.forms import CementTypeForm, OrderForm, CustomerForm, PaymentForm
+from finance.forms import CementTypeForm, OrderForm, CustomerForm, PaymentForm, PaymentEditForm
 
 
 class LoginView(LView):
@@ -80,12 +80,10 @@ class OrderView(LoginRequiredMixin, View):
                 'payment_type': payment.payment_type,
             })
         
-        # Sort by date (newest first)
         combined_data.sort(key=lambda x: x['order_date'])
         return combined_data
 
     def get(self, request):
-        # Prepare query parameters
         query_params = request.GET.copy()
         if not query_params.get('customer_id'):
             query_params['date_from'] = query_params.get('date_from') or date.today()
@@ -97,7 +95,6 @@ class OrderView(LoginRequiredMixin, View):
             queryset=Order.objects.order_by('order_date').select_related('customer', 'cement_type')
         ).qs
 
-        # Get customer if specified
         customer = None
         if request.GET.get('customer_id'):
             try:
@@ -105,9 +102,7 @@ class OrderView(LoginRequiredMixin, View):
             except Customer.DoesNotExist:
                 pass
 
-        # Process data based on customer selection
         if customer:
-            # Get payments and combine data
             date_from = query_params.get('date_from')
             date_to = query_params.get('date_to')
             payments = self._get_payment_data(customer.id, date_from, date_to)
@@ -115,7 +110,6 @@ class OrderView(LoginRequiredMixin, View):
             # Combine orders and payments
             combined_data = self._prepare_combined_data(filtered_orders, payments, customer)
             
-            # Calculate totals including payments
             total_quantity = sum(item['quantity'] for item in combined_data if item['type'] == 'order')
             total_price = sum(item['total_sum'] for item in combined_data if item['type'] == 'order')  # Only orders contribute to total price
             total_paid_amount = sum(item['paid_amount'] for item in combined_data if item['type'] == 'order') + sum(item['paid_amount'] for item in combined_data if item['type'] == 'payment')  # Orders + negative payments = net received
@@ -287,6 +281,33 @@ class DebtView(LoginRequiredMixin, View):
         return redirect('debts')
     
 
+class PaymentEditView(LoginRequiredMixin, View):
+    template_name = 'payment_edit.html'
+
+    def get_context(self, form, payment):
+        return {
+            'form': form,
+            'payment': payment,
+            'payment_type_choices': PaymentHistory.PaymentTypeChoices.choices,
+            'page': 'debt',
+        }
+
+    def get(self, request, pk):
+        payment = get_object_or_404(PaymentHistory, id=pk)
+        form = PaymentEditForm(instance=payment)
+        return render(request, self.template_name, self.get_context(form, payment))
+    
+    def post(self, request, pk):
+        payment = get_object_or_404(PaymentHistory, id=pk)
+        form = PaymentEditForm(request.POST, instance=payment)
+        
+        if form.is_valid():
+            form.save()
+            return redirect('debts')
+        
+        return render(request, self.template_name, self.get_context(form, payment))
+
+
 class PaymentDeleteView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
@@ -333,7 +354,7 @@ class CementTypeView(LoginRequiredMixin, View):
         
         context = {
             'cement_types': cement_types,
-            'colors': CementType.ColorChoices,
+            'colors': CementType.COLOR_CHOICES,
             'total_quantity': sum(cement_type.total_quantity or 0 for cement_type in cement_types),
             'page': 'cement_type',
             'selected_month': selected_month,

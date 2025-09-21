@@ -16,8 +16,8 @@
                         <select required id="cementColor" name="color" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 text-sm">
                             <option value="">Rangni tanlang</option>
                             {% for color in colors %}
-                                <option value="{{ color.value }}" style="color: {{ color.value }}">
-                                    {{ color.label }}
+                                <option value="{{ color.0 }}" style="color: {{ color.1 }}">
+                                    {{ color.1 }}
                                 </option>
                             {% endfor %}
                         </select>

@@ -19,20 +19,21 @@ class Customer(models.Model):
 
 class CementType(models.Model):
 
-    class ColorChoices(models.TextChoices):
-        RED = '#FF0000', "Qizil"
-        ORANGE = '#FFA500', "To'q sariq"
-        YELLOW = '#FFFF00', "Sariq"
-        GREEN = '#00B050', "Yashil"
-        DARK_BLUE = '#0070C0', "To'q ko‘k"
-        BLUE = '#00B0F0', "Moviy"
-        INDIGO = '#002060', "Ko‘k"
-        PURPLE = '#7030A0', "Binafsha"
-        GRAY = '#808080', "Kulrang"
-        BLACK = '#000000', "Qora"
+    COLOR_CHOICES = [
+        ('#FF0000', "Qizil"),
+        ('#FFA500', "To'q sariq"),
+        ('#FFFF00', "Sariq"),
+        ('#00B050', "Yashil"),
+        ('#0070C0', "To'q ko'k"),
+        ('#00B0F0', "Moviy"),
+        ('#002060', "Ko'k"),
+        ('#7030A0', "Binafsha"),
+        ('#808080', "Kulrang"),
+        ('#000000', "Qora"),
+    ]
 
     name = models.CharField(max_length=50)
-    color = models.CharField(max_length=10, choices=ColorChoices)
+    color = models.CharField(max_length=10, choices=COLOR_CHOICES)
 
     class Meta:
         db_table = 'cement_types'
@@ -88,6 +89,7 @@ class PaymentHistory(models.Model):
         blank=True,
     )
     amount = models.DecimalField(max_digits=15, decimal_places=2)
+    comment = models.TextField(null=True, blank=True, verbose_name="Izoh")
     paid_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

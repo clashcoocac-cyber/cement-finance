@@ -106,10 +106,11 @@ class CustomerForm(forms.ModelForm):
 class PaymentForm(forms.ModelForm):
     customer_id = forms.IntegerField()
     payment_amount = forms.CharField()
+    comment = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Izoh qoldiring...'}))
 
     class Meta:
         model = PaymentHistory
-        fields = ['customer_id', 'payment_amount', 'payment_type']
+        fields = ['customer_id', 'payment_amount', 'payment_type', 'comment']
 
     def save(self, commit=True):
         payment_history = super().save(commit=False)
@@ -120,6 +121,38 @@ class PaymentForm(forms.ModelForm):
             customer = payment_history.customer
             customer.total_debt -= payment_history.amount
             customer.save()
+        return payment_history
+
+
+class PaymentEditForm(forms.ModelForm):
+    payment_amount = forms.CharField()
+    comment = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Izoh qoldiring...'}))
+
+    class Meta:
+        model = PaymentHistory
+        fields = ['payment_amount', 'payment_type', 'comment']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set initial value for payment_amount if instance exists
+        if self.instance and self.instance.pk:
+            self.fields['payment_amount'].initial = str(self.instance.amount)
+
+    def save(self, commit=True):
+        payment_history = super().save(commit=False)
+        if commit:
+            # Calculate the difference in amount to update customer debt
+            old_amount = float(self.instance.amount)
+            new_amount = float(self.cleaned_data['payment_amount'].replace(',', '').replace(' ', '').replace('.', ''))
+            payment_history.amount = new_amount
+            
+            # Update customer debt based on the difference
+            amount_difference = new_amount - old_amount
+            customer = payment_history.customer
+            customer.total_debt -= amount_difference
+            customer.save()
+            
+            payment_history.save()
         return payment_history
 
 
