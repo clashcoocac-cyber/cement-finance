@@ -194,10 +194,8 @@
                                             <span class="text-green-600 font-semibold">{{ order.paid_amount | format_currency }}</span>
                                         {% endif %}
                                     </td>
-                                    <td class="px-4 py-3 text-sm whitespace-nowrap {% if order.type == 'order' %}text-red-700{% else %}text-green-700{% endif %}">
-                                        {% if order.type == 'order' %}
+                                    <td class="px-4 py-3 text-sm whitespace-nowrap text-red-700">
                                             {{ order.remaining_debt | format_currency }}
-                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -209,7 +207,7 @@
                                 <td class="px-4 py-4 text-sm font-bold text-gray-800 whitespace-nowrap">{{total_quantity | format_currency}}</td>
                                 <td class="px-4 py-4 text-sm font-bold text-gray-800"></td>
                                 <td class="px-4 py-4 text-sm font-bold text-blue-600" id="totalTransportSum"></td>
-                                <td class="px-4 py-4 text-sm font-bold text-green-600 whitespace-nowrap" id="totalGrandSum">{{total_price| format_currency}}</td>
+                                <td class="px-4 py-4 text-sm font-bold text-green-600 whitespace-nowrap" id="totalGrandSum"><!--{{total_price| format_currency}}--></td>
                                 <td class="px-4 py-4 text-sm font-bold text-green-600 whitespace-nowrap" id="totalPaidSum">{{total_paid_amount|format_currency}}</td>
                                 <td class="px-4 py-4 text-sm font-bold text-red-600 whitespace-nowrap" id="totalDebtSum">
                                     {% if customer %} 
