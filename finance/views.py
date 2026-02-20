@@ -379,7 +379,16 @@ class StatisticsView(LoginRequiredMixin, View):
     template_name = 'stats.html'
 
     def get(self, request):
-        orders = Order.objects.all()
+        # Get year from query parameter, default to 2026
+        selected_year = request.GET.get('year', '2026')
+        
+        try:
+            selected_year = int(selected_year)
+        except (ValueError, TypeError):
+            selected_year = 2026
+        
+        # Filter orders by year
+        orders = Order.objects.filter(order_date__year=selected_year)
         customers = Customer.objects.all()
         
         stats = {
@@ -390,7 +399,10 @@ class StatisticsView(LoginRequiredMixin, View):
         }
         
         most_cement_types = CementType.objects.annotate(
-            total_quantity=models.Sum('orders__quantity')
+            total_quantity=models.Sum(
+                'orders__quantity',
+                filter=models.Q(orders__order_date__year=selected_year)
+            )
         ).order_by('-total_quantity')[:3]
         
         context = {
@@ -399,6 +411,7 @@ class StatisticsView(LoginRequiredMixin, View):
             'total_debt': stats['total_debt'],
             'total_quantity': stats['total_quantity'],
             'most_cement_types': most_cement_types,
+            'selected_year': selected_year,
             'page': 'stats',
         }
         

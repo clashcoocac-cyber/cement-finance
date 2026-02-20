@@ -2,6 +2,15 @@
 {% load custom_filters %}
 {% block content %}
 
+<!-- Year Filter -->
+<div class="mb-8">
+    <div class="flex gap-2">
+        <a href="{% url 'stats' %}?year=2024" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2024 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2024</a>
+        <a href="{% url 'stats' %}?year=2025" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2025 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2025</a>
+        <a href="{% url 'stats' %}?year=2026" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2026 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2026</a>
+    </div>
+</div>
+
 <div id="statisticsContent" class="tab-content">
     <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         <div onclick="window.location.href = `{% url 'dashboard' %}#orderList`" class="cursor-pointer bg-gradient-to-br from-violet-500 via-blue-600 to-indigo-600 rounded-3xl p-8 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 card-hover">
