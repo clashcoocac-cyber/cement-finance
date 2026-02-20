@@ -78,6 +78,7 @@ class OrderView(LoginRequiredMixin, View):
                 'car_number': '',  # Payments don't have car number
                 'remaining_debt': -payment.amount,  # Negative because it reduces debt
                 'payment_type': payment.payment_type,
+                'comment': payment.comment,  # Add comment from payment
             })
         
         combined_data.sort(key=lambda x: x['order_date'])
