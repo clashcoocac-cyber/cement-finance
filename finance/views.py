@@ -262,8 +262,21 @@ class DebtView(LoginRequiredMixin, View):
     template_name = 'debt.html'
 
     def get(self, request):
+        # Get year from query parameter, default to current year
+        selected_year = request.GET.get('year', str(date.today().year))
+        
+        try:
+            selected_year = int(selected_year)
+        except (ValueError, TypeError):
+            selected_year = date.today().year
+        
         customers = Customer.objects.order_by('-total_debt')
-        payments = PaymentFilter(request.GET, PaymentHistory.objects.order_by('-paid_at')).qs
+        
+        # Filter payments by year
+        payments = PaymentFilter(
+            request.GET, 
+            PaymentHistory.objects.filter(paid_at__year=selected_year).order_by('-paid_at')
+        ).qs
         
         context = {
             'customers': customers,
@@ -271,6 +284,7 @@ class DebtView(LoginRequiredMixin, View):
             'total_amount': sum(payment.amount for payment in payments),
             'today': date.today().strftime('%Y-%m-%d'),
             'payment_type_choices': PaymentHistory.PaymentTypeChoices.choices,
+            'selected_year': selected_year,
             'page': 'debt',
         }
         return render(request, self.template_name, context=context)
