@@ -84,9 +84,20 @@ class OrderView(LoginRequiredMixin, View):
         combined_data.sort(key=lambda x: x['order_date'])
         return combined_data
 
-    def _calculate_cumulative_debt(self, combined_data):
+    def _calculate_cumulative_debt(self, combined_data, customer):
         """Calculate cumulative debt for each transaction"""
-        cumulative_debt = 0
+        # Start with the customer's existing total debt
+        cumulative_debt = customer.total_debt
+        
+        # Calculate total debt from current filtered transactions first
+        total_filtered_debt = sum(
+            item['remaining_debt'] for item in combined_data if item['type'] == 'order'
+        ) - sum(
+            item['paid_amount'] for item in combined_data if item['type'] == 'payment'
+        )
+        
+        # Adjust cumulative debt to start from before these transactions
+        cumulative_debt = cumulative_debt - total_filtered_debt
         
         for item in combined_data:
             if item['type'] == 'order':
@@ -127,7 +138,7 @@ class OrderView(LoginRequiredMixin, View):
             combined_data = self._prepare_combined_data(filtered_orders, payments, customer)
             
             # Calculate cumulative debt for each transaction
-            combined_data = self._calculate_cumulative_debt(combined_data)
+            combined_data = self._calculate_cumulative_debt(combined_data, customer)
             
             total_quantity = sum(item['quantity'] for item in combined_data if item['type'] == 'order')
             total_price = sum(item['total_sum'] for item in combined_data if item['type'] == 'order')  # Only orders contribute to total price
