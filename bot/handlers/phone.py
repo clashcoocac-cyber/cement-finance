@@ -147,7 +147,7 @@ async def handle_text(message: types.Message):
         return
     
     # Format phone number to standard
-    phone_clean = phone.strip()
+    phone_clean = phone.replace('-', '').replace(' ', '').replace('(', '').replace(')', '')
 
     logger.info(f"Processing phone number from text: {phone_clean}")
     
