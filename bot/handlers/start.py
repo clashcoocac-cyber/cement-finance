@@ -34,7 +34,7 @@ async def cmd_start(message: types.Message):
     await message.answer(
         "Assalomu alaykum! 👋\n\n"
         "Siz o'z buyurtma va qarzlaringizni ko'rish uchun telefon raqamingizni jo'nating.\n\n"
-        "<i>Tugmani bosing yoki raqamni to'g'ridan-to'g'ri yozing (formatlar: 998934701803, +998934701803, 34701803)</i>",
+        "Tugmani bosing yoki raqamni to'g'ridan-to'g'ri yozing",
         reply_markup=keyboard,
         parse_mode="HTML"
     )
