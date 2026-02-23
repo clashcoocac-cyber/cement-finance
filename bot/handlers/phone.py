@@ -30,7 +30,6 @@ async def handle_contact(message: types.Message):
     """
     try:
         phone = message.contact.phone_number if message.contact else None
-        phone = f'+{phone}' if phone else None
         logger.info(phone)
         
         if not phone:
