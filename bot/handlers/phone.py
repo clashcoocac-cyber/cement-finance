@@ -190,24 +190,7 @@ async def handle_text(message: types.Message):
             if os.path.exists(pdf_path):
                 os.remove(pdf_path)
                 logger.info(f"Deleted temp PDF: {pdf_path}")
-        
-        # Send debt message
-        try:
-            total_debt = summary.get('total_debt', 0) if summary else 0
-            if total_debt == 0:
-                debt_status = "✅"
-                debt_message = "Qarz yo'q"
-            else:
-                debt_status = "⚠️"
-                debt_message = f"{total_debt:,} so'm"
-            
-            summary_text = f"{debt_status} <b>Qarzdorlik:</b> {debt_message}"
-            await message.answer(summary_text, parse_mode="HTML")
-            logger.info(f"Debt message sent successfully: {debt_message}")
-        except Exception as debt_error:
-            logger.error(f"Error sending debt message: {debt_error}")
-            await message.answer("Qarzylik ma'lumoti yuborildi.")
-        
+                
         logger.info(f"Successfully processed customer: {customer['name']} ({phone_clean})")
         
     except Exception as e:
