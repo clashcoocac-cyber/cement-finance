@@ -85,9 +85,14 @@ async def handle_contact(message: types.Message):
                 logger.info(f"Deleted temp PDF: {pdf_path}")
         
         # Send debt message
-        debt_status = "✅" if summary['total_debt'] == 0 else "⚠️"
-        summary_text = f"{debt_status} <b>Qarzylik:</b> <b>{summary['total_debt']:,} so'm</b>"
+        if summary['total_debt'] == 0:
+            debt_status = "✅"
+            debt_message = "Qarz yo'q"
+        else:
+            debt_status = "⚠️"
+            debt_message = f"{summary['total_debt']:,} so'm"
         
+        summary_text = f"{debt_status} <b>Qarzylik:</b> <b>{debt_message}</b>"
         await message.answer(summary_text, parse_mode="HTML")
         
         logger.info(f"Successfully processed customer: {customer['name']} ({phone})")
@@ -195,9 +200,14 @@ async def handle_text(message: types.Message):
                 logger.info(f"Deleted temp PDF: {pdf_path}")
         
         # Send debt message
-        debt_status = "✅" if summary['total_debt'] == 0 else "⚠️"
-        summary_text = f"{debt_status} <b>Qarzdorlik:</b> {summary['total_debt']:,} so'm"
+        if summary['total_debt'] == 0:
+            debt_status = "✅"
+            debt_message = "Qarz yo'q"
+        else:
+            debt_status = "⚠️"
+            debt_message = f"{summary['total_debt']:,} so'm"
         
+        summary_text = f"{debt_status} <b>Qarzylik:</b> <b>{debt_message}</b>"
         await message.answer(summary_text, parse_mode="HTML")
         
         logger.info(f"Successfully processed customer: {customer['name']} ({phone_clean})")
@@ -258,9 +268,14 @@ async def handle_customer_callback(query: types.CallbackQuery):
                 logger.info(f"Deleted temp PDF: {pdf_path}")
         
         # Send debt message
-        debt_status = "✅" if summary['total_debt'] == 0 else "⚠️"
-        summary_text = f"{debt_status} <b>Qarzdorlik:</b> {summary['total_debt']:,} so'm"
+        if summary['total_debt'] == 0:
+            debt_status = "✅"
+            debt_message = "Qarz yo'q"
+        else:
+            debt_status = "⚠️"
+            debt_message = f"{summary['total_debt']:,} so'm"
         
+        summary_text = f"{debt_status} <b>Qarzdorlik:</b> <b>{debt_message}</b>"
         await query.message.answer(summary_text, parse_mode="HTML")
         
         logger.info(f"Successfully processed customer from list: {customer['name']}")

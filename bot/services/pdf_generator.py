@@ -10,6 +10,33 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import os
+
+
+def register_fonts():
+    """Register fonts that support Cyrillic characters"""
+    # Try to register DejaVu fonts which support Cyrillic
+    font_paths = [
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',  # Linux
+        '/System/Library/Fonts/Arial.ttf',  # macOS
+        'C:\\Windows\\Fonts\\arial.ttf',  # Windows
+    ]
+    
+    for font_path in font_paths:
+        if os.path.exists(font_path):
+            try:
+                pdfmetrics.registerFont(TTFont('Arial', font_path))
+                return True
+            except Exception:
+                continue
+    
+    return False
+
+
+# Register fonts at module load
+register_fonts()
 
 
 class PDFGenerator:
@@ -70,19 +97,28 @@ class PDFGenerator:
             fontSize=16,
             textColor=colors.HexColor('#1f4788'),
             spaceAfter=6,
-            alignment=1  # center
+            alignment=1,  # center
+            fontName='Arial'
         )
         elements.append(Paragraph("BUYURTMALAR VA QARZYLIK HISOBOTI", title_style))
         elements.append(Spacer(1, 0.2*inch))
         
         # Customer Info
+        customer_info_style = ParagraphStyle(
+            'CustomerInfo',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.black,
+            spaceAfter=3,
+            fontName='Arial'
+        )
         customer_info = f"""
         <b>Mijoz nomi:</b> {customer_data['name']}<br/>
         <b>Telefon:</b> {customer_data['phone']}<br/>
         <b>Manzil:</b> {customer_data['address']}<br/>
         <b>Vaqt:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}
         """
-        elements.append(Paragraph(customer_info, styles['Normal']))
+        elements.append(Paragraph(customer_info, customer_info_style))
         elements.append(Spacer(1, 0.15*inch))
         
         # Calculate starting and current debt
@@ -108,7 +144,8 @@ class PDFGenerator:
             parent=styles['Normal'],
             fontSize=11,
             textColor=colors.black,
-            spaceAfter=3
+            spaceAfter=3,
+            fontName='Arial'
         )
         elements.append(Paragraph(f"<b>Eski qarzdorlik:</b> {eski_qarzdorlik:,} so'm", debt_info_style))
         elements.append(Paragraph(f"<b>Hozirgi qarz:</b> {hozirgi_qarz:,} so'm", debt_info_style))
@@ -116,7 +153,12 @@ class PDFGenerator:
         
         # Combined Transaction History with Cumulative Debt (Web App format)
         if combined_data:
-            elements.append(Paragraph("<b>BUYURTMALAR RO'YXATI</b>", styles['Heading2']))
+            heading_style = ParagraphStyle(
+                'Heading2Custom',
+                parent=styles['Heading2'],
+                fontName='Arial'
+            )
+            elements.append(Paragraph("<b>BUYURTMALAR RO'YXATI</b>", heading_style))
             elements.append(Spacer(1, 0.1*inch))
             
             # Header row matching web app: Sana | Turi | Mashina | Miqdori | Narxi | Yo'l Harajati | Jami | Olingan | Qarz
@@ -171,11 +213,12 @@ class PDFGenerator:
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e8eff5')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Arial'),
                 ('FONTSIZE', (0, 0), (-1, 0), 7),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
                 ('TOPPADDING', (0, 0), (-1, 0), 6),
                 ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('FONTNAME', (0, 1), (-1, -1), 'Arial'),
                 ('FONTSIZE', (0, 1), (-1, -1), 7),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 4),
