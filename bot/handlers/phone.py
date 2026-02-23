@@ -85,15 +85,21 @@ async def handle_contact(message: types.Message):
                 logger.info(f"Deleted temp PDF: {pdf_path}")
         
         # Send debt message
-        if summary['total_debt'] == 0:
-            debt_status = "✅"
-            debt_message = "Qarz yo'q"
-        else:
-            debt_status = "⚠️"
-            debt_message = f"{summary['total_debt']:,} so'm"
-        
-        summary_text = f"{debt_status} <b>Qarzylik:</b> <b>{debt_message}</b>"
-        await message.answer(summary_text, parse_mode="HTML")
+        try:
+            total_debt = summary.get('total_debt', 0) if summary else 0
+            if total_debt == 0:
+                debt_status = "✅"
+                debt_message = "Qarz yo'q"
+            else:
+                debt_status = "⚠️"
+                debt_message = f"{total_debt:,} so'm"
+            
+            summary_text = f"{debt_status} <b>Qarzdorlik:</b> {debt_message}"
+            await message.answer(summary_text, parse_mode="HTML")
+            logger.info(f"Debt message sent successfully: {debt_message}")
+        except Exception as debt_error:
+            logger.error(f"Error sending debt message: {debt_error}")
+            await message.answer("Qarzylik ma'lumoti yuborildi.")
         
         logger.info(f"Successfully processed customer: {customer['name']} ({phone})")
         
@@ -200,15 +206,21 @@ async def handle_text(message: types.Message):
                 logger.info(f"Deleted temp PDF: {pdf_path}")
         
         # Send debt message
-        if summary['total_debt'] == 0:
-            debt_status = "✅"
-            debt_message = "Qarz yo'q"
-        else:
-            debt_status = "⚠️"
-            debt_message = f"{summary['total_debt']:,} so'm"
-        
-        summary_text = f"{debt_status} <b>Qarzylik:</b> <b>{debt_message}</b>"
-        await message.answer(summary_text, parse_mode="HTML")
+        try:
+            total_debt = summary.get('total_debt', 0) if summary else 0
+            if total_debt == 0:
+                debt_status = "✅"
+                debt_message = "Qarz yo'q"
+            else:
+                debt_status = "⚠️"
+                debt_message = f"{total_debt:,} so'm"
+            
+            summary_text = f"{debt_status} <b>Qarzdorlik:</b> {debt_message}"
+            await message.answer(summary_text, parse_mode="HTML")
+            logger.info(f"Debt message sent successfully: {debt_message}")
+        except Exception as debt_error:
+            logger.error(f"Error sending debt message: {debt_error}")
+            await message.answer("Qarzylik ma'lumoti yuborildi.")
         
         logger.info(f"Successfully processed customer: {customer['name']} ({phone_clean})")
         
@@ -268,15 +280,21 @@ async def handle_customer_callback(query: types.CallbackQuery):
                 logger.info(f"Deleted temp PDF: {pdf_path}")
         
         # Send debt message
-        if summary['total_debt'] == 0:
-            debt_status = "✅"
-            debt_message = "Qarz yo'q"
-        else:
-            debt_status = "⚠️"
-            debt_message = f"{summary['total_debt']:,} so'm"
-        
-        summary_text = f"{debt_status} <b>Qarzdorlik:</b> <b>{debt_message}</b>"
-        await query.message.answer(summary_text, parse_mode="HTML")
+        try:
+            total_debt = summary.get('total_debt', 0) if summary else 0
+            if total_debt == 0:
+                debt_status = "✅"
+                debt_message = "Qarz yo'q"
+            else:
+                debt_status = "⚠️"
+                debt_message = f"{total_debt:,} so'm"
+            
+            summary_text = f"{debt_status} <b>Qarzdorlik:</b> {debt_message}"
+            await query.message.answer(summary_text, parse_mode="HTML")
+            logger.info(f"Debt message sent successfully: {debt_message}")
+        except Exception as debt_error:
+            logger.error(f"Error sending debt message: {debt_error}")
+            await query.message.answer("Qarzylik ma'lumoti yuborildi.")
         
         logger.info(f"Successfully processed customer from list: {customer['name']}")
         

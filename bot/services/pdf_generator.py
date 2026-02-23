@@ -13,30 +13,30 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 
-def register_fonts():
-    """Register fonts that support Cyrillic characters"""
-    # Try to register DejaVu fonts which support Cyrillic
-    font_paths = [
-        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',  # Linux
-        '/System/Library/Fonts/Arial.ttf',  # macOS
-        'C:\\Windows\\Fonts\\arial.ttf',  # Windows
-    ]
+# Font registration for Cyrillic support
+def register_cyrillic_fonts():
+    """Register DejaVu fonts with Cyrillic support"""
+    dejavu_paths = {
+        'DejaVuSans': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+        'DejaVuSans-Bold': '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+    }
     
-    for font_path in font_paths:
+    for font_name, font_path in dejavu_paths.items():
         if os.path.exists(font_path):
             try:
-                pdfmetrics.registerFont(TTFont('Arial', font_path))
-                return True
-            except Exception:
-                continue
+                pdfmetrics.registerFont(TTFont(font_name, font_path))
+                logger.info(f"Registered font: {font_name}")
+            except Exception as e:
+                logger.error(f"Failed to register font {font_name}: {e}")
     
-    return False
-
+    return True
 
 # Register fonts at module load
-register_fonts()
+register_cyrillic_fonts()
 
 
 class PDFGenerator:
@@ -98,7 +98,7 @@ class PDFGenerator:
             textColor=colors.HexColor('#1f4788'),
             spaceAfter=6,
             alignment=1,  # center
-            fontName='Arial'
+            fontName='DejaVuSans-Bold'
         )
         elements.append(Paragraph("BUYURTMALAR VA QARZYLIK HISOBOTI", title_style))
         elements.append(Spacer(1, 0.2*inch))
@@ -110,7 +110,7 @@ class PDFGenerator:
             fontSize=10,
             textColor=colors.black,
             spaceAfter=3,
-            fontName='Arial'
+            fontName='DejaVuSans'
         )
         customer_info = f"""
         <b>Mijoz nomi:</b> {customer_data['name']}<br/>
@@ -145,7 +145,7 @@ class PDFGenerator:
             fontSize=11,
             textColor=colors.black,
             spaceAfter=3,
-            fontName='Arial'
+            fontName='DejaVuSans'
         )
         elements.append(Paragraph(f"<b>Eski qarzdorlik:</b> {eski_qarzdorlik:,} so'm", debt_info_style))
         elements.append(Paragraph(f"<b>Hozirgi qarz:</b> {hozirgi_qarz:,} so'm", debt_info_style))
@@ -156,7 +156,7 @@ class PDFGenerator:
             heading_style = ParagraphStyle(
                 'Heading2Custom',
                 parent=styles['Heading2'],
-                fontName='Arial'
+                fontName='DejaVuSans-Bold'
             )
             elements.append(Paragraph("<b>BUYURTMALAR RO'YXATI</b>", heading_style))
             elements.append(Spacer(1, 0.1*inch))
@@ -213,12 +213,12 @@ class PDFGenerator:
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e8eff5')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Arial'),
+                ('FONTNAME', (0, 0), (-1, 0), 'DejaVuSans-Bold'),
                 ('FONTSIZE', (0, 0), (-1, 0), 7),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
                 ('TOPPADDING', (0, 0), (-1, 0), 6),
                 ('GRID', (0, 0), (-1, -1), 1, colors.grey),
-                ('FONTNAME', (0, 1), (-1, -1), 'Arial'),
+                ('FONTNAME', (0, 1), (-1, -1), 'DejaVuSans'),
                 ('FONTSIZE', (0, 1), (-1, -1), 7),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 4),
