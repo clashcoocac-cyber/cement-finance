@@ -206,7 +206,8 @@ class PDFGenerator:
                     ])
             
             # Create table with landscape widths
-            transactions_table = Table(transactions_data, colWidths=[0.65*inch, 1.1*inch, 0.9*inch, 0.75*inch, 0.85*inch, 0.75*inch, 1*inch, 1*inch, 1*inch])
+            # Turi ustun uchun ko'proq joy ajratildi
+            transactions_table = Table(transactions_data, colWidths=[0.65*inch, 1.5*inch, 0.85*inch, 0.75*inch, 0.8*inch, 0.7*inch, 1*inch, 1*inch, 1*inch])
             
             # Build table style
             table_style_commands = [
