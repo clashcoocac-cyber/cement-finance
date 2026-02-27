@@ -301,6 +301,10 @@ class DebtView(LoginRequiredMixin, View):
         
         customers = Customer.objects.order_by('-total_debt')
         
+        # Get date filters, default to today
+        date_from = request.GET.get('date_from', date.today().strftime('%Y-%m-%d'))
+        date_to = request.GET.get('date_to', date.today().strftime('%Y-%m-%d'))
+        
         # Filter payments by year
         payments = PaymentFilter(
             request.GET, 
@@ -312,6 +316,8 @@ class DebtView(LoginRequiredMixin, View):
             'payments': payments,
             'total_amount': sum(payment.amount for payment in payments),
             'today': date.today().strftime('%Y-%m-%d'),
+            'date_from': date_from,
+            'date_to': date_to,
             'payment_type_choices': PaymentHistory.PaymentTypeChoices.choices,
             'selected_year': selected_year,
             'page': 'debt',
