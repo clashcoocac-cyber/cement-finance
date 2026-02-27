@@ -303,7 +303,9 @@ class DebtView(LoginRequiredMixin, View):
         
         # Get date filters, default to today
         date_from = request.GET.get('date_from', date.today().strftime('%Y-%m-%d'))
+        request.GET['date_from'] = date_from
         date_to = request.GET.get('date_to', date.today().strftime('%Y-%m-%d'))
+        request.GET['date_to'] = date_to
         
         # Filter payments by year
         payments = PaymentFilter(
