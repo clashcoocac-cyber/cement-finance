@@ -7,7 +7,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Sement Savdo Tizimi</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
             body { font-family: 'Mona Sans', sans-serif; }
@@ -202,30 +201,6 @@
         }
 
 
-        function generatePDF() {
-    const element = document.getElementById("invoice");
-
-    const opt = {
-        margin:       0,
-        filename:     'document.pdf',
-        image:        { type: 'jpeg', quality: 1 },
-        html2canvas:  {
-            scale: 2,
-            useCORS: true, // agar rasm bo'lsa
-            logging: true,
-            scrollY: 0, // skrollni hisobga olmasin
-            windowWidth: document.body.scrollWidth,
-            windowHeight: document.body.scrollHeight,
-        },
-        jsPDF:        {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'landscape' // <-- bu albom ko‘rinish uchun
-        }
-    };
-
-    html2pdf().set(opt).from(element).save();
-}
 function searchFilterClients() {
             const searchTerm = document.getElementById('filterClientNameSearch').value.toLowerCase();
             const dropdown = document.getElementById('filterClientDropdown');
@@ -359,6 +334,5 @@ function editOrder(row) {
     </script>
     
  </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 </html>

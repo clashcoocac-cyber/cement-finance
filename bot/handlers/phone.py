@@ -8,7 +8,7 @@ from aiogram import Router, types, F
 from aiogram.filters import Filter
 from aiogram.types import ReplyKeyboardRemove
 
-from bot.services import CustomerService, PDFGenerator
+from bot.services import CustomerService, ExcelGenerator
 from bot.config.settings import get_settings
 
 
@@ -64,25 +64,25 @@ async def handle_contact(message: types.Message):
         combined_data, _ = await CustomerService.get_customer_combined_data(customer['id'])
         summary = await CustomerService.get_customer_summary(customer['id'])
         
-        # Generate PDF
+        # Generate Excel
         settings = get_settings()
-        pdf_generator = PDFGenerator(settings.PDF_TEMP_DIR)
-        pdf_path = pdf_generator.generate_customer_report(customer, combined_data, summary)
+        excel_generator = ExcelGenerator(settings.EXCEL_TEMP_DIR)
+        xlsx_path = excel_generator.generate_customer_report(customer, combined_data, summary)
         
-        # Send PDF
+        # Send Excel
         await status_msg.delete()
         
         try:
             await message.answer_document(
-                types.FSInputFile(pdf_path),
+                types.FSInputFile(xlsx_path),
                 caption=f"{customer['name']}\n{datetime.now().strftime('%Y-%m-%d')}",
                 reply_markup=ReplyKeyboardRemove()
             )
         finally:
-            # Delete temp PDF file
-            if os.path.exists(pdf_path):
-                os.remove(pdf_path)
-                logger.info(f"Deleted temp PDF: {pdf_path}")
+            # Delete temp file
+            if os.path.exists(xlsx_path):
+                os.remove(xlsx_path)
+                logger.info(f"Deleted temp report: {xlsx_path}")
         
         # Send debt message
 
@@ -172,24 +172,24 @@ async def handle_text(message: types.Message):
         combined_data, _ = await CustomerService.get_customer_combined_data(customer['id'])
         summary = await CustomerService.get_customer_summary(customer['id'])
         
-        # Generate PDF
+        # Generate Excel
         settings = get_settings()
-        pdf_generator = PDFGenerator(settings.PDF_TEMP_DIR)
-        pdf_path = pdf_generator.generate_customer_report(customer, combined_data, summary)
+        excel_generator = ExcelGenerator(settings.EXCEL_TEMP_DIR)
+        xlsx_path = excel_generator.generate_customer_report(customer, combined_data, summary)
         
-        # Send PDF
+        # Send Excel
         await status_msg.delete()
         
         try:
             await message.answer_document(
-                types.FSInputFile(pdf_path),
+                types.FSInputFile(xlsx_path),
                 caption=f"{customer['name']}\n{datetime.now().strftime('%Y-%m-%d')}"
             )
         finally:
-            # Delete temp PDF file
-            if os.path.exists(pdf_path):
-                os.remove(pdf_path)
-                logger.info(f"Deleted temp PDF: {pdf_path}")
+            # Delete temp file
+            if os.path.exists(xlsx_path):
+                os.remove(xlsx_path)
+                logger.info(f"Deleted temp report: {xlsx_path}")
                 
         logger.info(f"Successfully processed customer: {customer['name']} ({phone_clean})")
         
@@ -226,27 +226,27 @@ async def handle_customer_callback(query: types.CallbackQuery):
         combined_data, _ = await CustomerService.get_customer_combined_data(customer['id'])
         summary = await CustomerService.get_customer_summary(customer['id'])
         
-        # Generate PDF
+        # Generate Excel
         settings = get_settings()
-        pdf_generator = PDFGenerator(settings.PDF_TEMP_DIR)
-        pdf_path = pdf_generator.generate_customer_report(customer, combined_data, summary)
+        excel_generator = ExcelGenerator(settings.EXCEL_TEMP_DIR)
+        xlsx_path = excel_generator.generate_customer_report(customer, combined_data, summary)
         
         # Edit message
         await query.message.edit_text(
             f"📄 {customer['name']} ning hisoboti tayyorlanmoqda..."
         )
         
-        # Send PDF
+        # Send Excel
         try:
             await query.message.answer_document(
-                types.FSInputFile(pdf_path),
+                types.FSInputFile(xlsx_path),
                 caption=f"{customer['name']}\n{datetime.now().strftime('%Y-%m-%d')}"
             )
         finally:
-            # Delete temp PDF file
-            if os.path.exists(pdf_path):
-                os.remove(pdf_path)
-                logger.info(f"Deleted temp PDF: {pdf_path}")
+            # Delete temp file
+            if os.path.exists(xlsx_path):
+                os.remove(xlsx_path)
+                logger.info(f"Deleted temp report: {xlsx_path}")
         
         # Send debt message
         try:

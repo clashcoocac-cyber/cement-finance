@@ -5,6 +5,9 @@ from finance.views import (
     OrderView, CustomerView, DebtView, CementTypeView, StatisticsView, CementTypeDeleteView,
     OrderEditView, OrderDeleteView, CustomerDeleteView, PaymentDeleteView, PaymentEditView
 )
+from finance.excel_views import (
+    OrderExportView, CustomerExportView, DebtExportView, CementTypeExportView,
+)
 
 
 urlpatterns = [
@@ -12,8 +15,12 @@ urlpatterns = [
 
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    
+
     path('', OrderView.as_view(), name='dashboard'),
+    path('export/orders/', OrderExportView.as_view(), name='export_orders'),
+    path('export/customers/', CustomerExportView.as_view(), name='export_customers'),
+    path('export/debts/', DebtExportView.as_view(), name='export_debts'),
+    path('export/cement-types/', CementTypeExportView.as_view(), name='export_cement_types'),
     path('order/edit/<int:pk>/', OrderEditView.as_view(), name='order_edit'),
     path('order/delete/<int:pk>/', OrderDeleteView.as_view(), name='order_delete'),
     path('customer/', CustomerView.as_view(), name='customer'),

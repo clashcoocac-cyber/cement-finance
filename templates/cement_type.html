@@ -30,7 +30,7 @@
             <div id="cementList" class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-2xl font-bold text-gray-800 mb-8">Sement Turlari Ro'yxati</h3>
-                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Hisobotni Yuklash</button>
+                    <a href="{% url 'export_cement_types' %}?{{ request.GET.urlencode }}" id="exportBtn" onclick="return exportWait(this)" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Hisobotni Yuklash</a>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div>
@@ -99,28 +99,5 @@
             window.location.href = currentUrl.toString();
         }
 
-    function generatePDF() {
-    const element = document.getElementById("cementList");
-
-    const opt = {
-        margin:       0,
-        filename:     'document.pdf',
-        image:        { type: 'jpeg', quality: 1 },
-        html2canvas:  {
-            scale: 2,
-            useCORS: true, // agar rasm bo'lsa
-            logging: true,
-            scrollY: 0, // skrollni hisobga olmasin
-            windowWidth: document.body.scrollWidth,
-            windowHeight: document.body.scrollHeight,
-        },
-        jsPDF:        {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'landscape' // <-- bu albom ko‘rinish uchun
-        }
-    };
-        html2pdf().set(opt).from(element).save();
-    }
 </script>
 {% endblock %}

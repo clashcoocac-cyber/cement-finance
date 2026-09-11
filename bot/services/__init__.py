@@ -1,4 +1,4 @@
 from .database import CustomerService
-from .pdf_generator import PDFGenerator
+from .excel_generator import ExcelGenerator
 
-__all__ = ['CustomerService', 'PDFGenerator']
+__all__ = ['CustomerService', 'ExcelGenerator']

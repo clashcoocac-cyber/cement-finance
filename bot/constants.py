@@ -21,7 +21,7 @@ BOT_MESSAGES = {
         "📋 <b>Bot qo'llanma:</b>\n\n"
         "1️⃣ <b>/start</b> - Botni boshlab, raqamingizni jo'nating\n"
         "2️⃣ Telefon raqamingiz orqali o'z ma'lumotlaringizni oling\n"
-        "3️⃣ Bot PDF fayl shaklida hisobotni yuboradi\n\n"
+        "3️⃣ Bot Excel (.xlsx) fayl shaklida hisobotni yuboradi\n\n"
         "<i>Agar xatolik bo'lsa admin bilan bog'laning</i>"
     ),
     'processing': "⏳ Ma'lumot izlanmoqda...",
@@ -30,9 +30,9 @@ BOT_MESSAGES = {
     'text_fallback': "ℹ️ Iltimos, <b>📞 Telefon raqamimni jo'natish</b> tugmasini ishlating yoki /start komandasini yozing.",
 }
 
-# PDF settings
-PDF_TITLE = "BUYURTMALAR VA QARZYLIK HISOBOTI"
-PDF_TEMP_DIR = "temp_pdfs"
+# Excel report settings
+XLSX_TITLE = "BUYURTMALAR VA QARZYLIK HISOBOTI"
+XLSX_TEMP_DIR = "temp_reports"
 
 # Date format
 DATE_FORMAT = "%Y-%m-%d"

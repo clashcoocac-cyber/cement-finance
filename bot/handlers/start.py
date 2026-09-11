@@ -49,7 +49,7 @@ async def cmd_help(message: types.Message):
         "📋 <b>Bot qo'llanma:</b>\n\n"
         "1️⃣ <b>/start</b> - Botni boshlab, raqamingizni jo'nating\n"
         "2️⃣ Telefon raqamingiz orqali o'z ma'lumotlaringizni oling\n"
-        "3️⃣ Bot PDF fayl shaklida hisobotni yuboradi\n"
+        "3️⃣ Bot Excel (.xlsx) fayl shaklida hisobotni yuboradi\n"
         "4️⃣ <b>/customers</b> - Barcha mijozlarni ko'rish (Admin)\n\n"
         "<i>Agar xatolik bo'lsa admin bilan bog'laning</i>",
         parse_mode="HTML"

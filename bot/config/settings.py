@@ -27,8 +27,8 @@ class Settings:
     # Logging
     LOG_LEVEL = decouple_config('LOG_LEVEL', default='INFO')
     
-    # PDF Settings
-    PDF_TEMP_DIR = Path(__file__).parent.parent.parent / 'temp_pdfs'
+    # Excel report settings
+    EXCEL_TEMP_DIR = Path(__file__).parent.parent.parent / 'temp_reports'
     
     def __init__(self):
         """Validate settings on initialization"""
@@ -36,7 +36,7 @@ class Settings:
             raise ValueError("BOT_TOKEN is not set in environment variables")
         
         # Create temp directory if it doesn't exist
-        self.PDF_TEMP_DIR.mkdir(exist_ok=True)
+        self.EXCEL_TEMP_DIR.mkdir(exist_ok=True)
 
 
 def get_settings() -> Settings:

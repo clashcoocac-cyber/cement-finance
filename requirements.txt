@@ -3,5 +3,4 @@ django-filter==23.3
 Pillow==10.1.0
 python-decouple==3.8
 aiogram==3.3.0
-reportlab==4.0.9
-PyPDF2==3.0.1
+openpyxl==3.1.5
