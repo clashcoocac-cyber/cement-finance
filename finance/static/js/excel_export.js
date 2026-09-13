@@ -2,8 +2,16 @@
  * Export button: fetches the .xlsx, triggers the download, then restores
  * the button. Shows ⏳ while loading and ❌ on error.
  */
-async function exportWait(el) {
-    if (el.dataset.busy) return false;
+// onclick="return exportWait(this)": must return a real `false` here.
+// An async function returns a Promise (truthy), so the browser would also
+// follow the href -> file downloaded twice.
+function exportWait(el) {
+    exportFetch(el);
+    return false;
+}
+
+async function exportFetch(el) {
+    if (el.dataset.busy) return;
     el.dataset.busy = '1';
 
     const orig = el.textContent;
@@ -42,6 +50,4 @@ async function exportWait(el) {
         el.style.pointerEvents = '';
         delete el.dataset.busy;
     }, 2000);
-
-    return false;
 }

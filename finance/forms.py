@@ -1,4 +1,6 @@
 from django import forms
+from django.db import transaction
+from django.db.models import F
 from finance.models import Customer, CementType, Order, PaymentHistory
 
 
@@ -130,29 +132,33 @@ class PaymentEditForm(forms.ModelForm):
 
     class Meta:
         model = PaymentHistory
-        fields = ['payment_amount', 'payment_type', 'comment']
+        fields = ['customer', 'payment_amount', 'payment_type', 'comment']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Set initial value for payment_amount if instance exists
         if self.instance and self.instance.pk:
             self.fields['payment_amount'].initial = str(self.instance.amount)
+        # Snapshot before clean(): is_valid() overwrites instance.customer
+        self._old_customer_id = self.instance.customer_id
+        self._old_amount = int(self.instance.amount or 0)
 
     def save(self, commit=True):
         payment_history = super().save(commit=False)
         if commit:
-            # Calculate the difference in amount to update customer debt
-            old_amount = float(self.instance.amount)
-            new_amount = float(self.cleaned_data['payment_amount'].replace(',', '').replace(' ', '').replace('.', ''))
+            new_amount = int(self.cleaned_data['payment_amount'].replace(',', '').replace(' ', '').replace('.', ''))
             payment_history.amount = new_amount
-            
-            # Update customer debt based on the difference
-            amount_difference = new_amount - old_amount
-            customer = payment_history.customer
-            customer.total_debt -= amount_difference
-            customer.save()
-            
-            payment_history.save()
+
+            # Give old payment back to old customer, subtract new one from new customer.
+            # Same customer -> net effect is just the amount difference.
+            with transaction.atomic():
+                Customer.objects.filter(id=self._old_customer_id).update(
+                    total_debt=F('total_debt') + self._old_amount
+                )
+                Customer.objects.filter(id=payment_history.customer_id).update(
+                    total_debt=F('total_debt') - new_amount
+                )
+                payment_history.save()
         return payment_history
 
 
