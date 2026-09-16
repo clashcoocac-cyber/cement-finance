@@ -91,12 +91,9 @@
     </form>
 </div>
 
+{{ customers_json|json_script:"clients-data" }}
 <script>
-    let clients = [
-        {% for customer in customers %}
-            {'id': '{{ customer.id }}', 'name': '{{ customer.name }}', 'phone': '{{ customer.phone }}'},
-        {% endfor %}
-    ]
+    let clients = JSON.parse(document.getElementById('clients-data').textContent);
 
     function searchClients() {
         const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
@@ -116,12 +113,21 @@
         dropdown.innerHTML = '';
 
         if (filteredClients.length === 0) {
-            dropdown.innerHTML = '<div class="p-3 text-gray-500 text-sm">Mijoz topilmadi</div>';
+            const empty = document.createElement('div');
+            empty.className = 'p-3 text-gray-500 text-sm';
+            empty.textContent = 'Mijoz topilmadi';
+            dropdown.appendChild(empty);
         } else {
             filteredClients.forEach(client => {
                 const option = document.createElement('div');
                 option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                const name = document.createElement('div');
+                name.className = 'font-medium';
+                name.textContent = client.name;
+                const phone = document.createElement('div');
+                phone.className = 'text-gray-500 text-xs';
+                phone.textContent = client.phone;
+                option.append(name, phone);
                 option.onclick = () => selectClient(client);
                 dropdown.appendChild(option);
             });

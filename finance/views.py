@@ -375,7 +375,9 @@ class PaymentEditView(LoginRequiredMixin, View):
         return {
             "form": form,
             "payment": payment,
-            "customers": Customer.objects.order_by("name"),
+            "customers_json": list(
+                Customer.objects.order_by("name").values("id", "name", "phone")
+            ),
             "payment_type_choices": PaymentHistory.PaymentTypeChoices.choices,
             "page": "debt",
         }
