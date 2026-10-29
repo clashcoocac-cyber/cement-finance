@@ -4,7 +4,7 @@
 <!-- Cement Types Tab -->
         <div id="cementContent" class="tab-content">
             <div class="modern-card rounded-2xl p-6 mb-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Yangi Sement Turi Qo'shish</h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Yangi Sement Turi Qo'shish</h2>
                 <form action="{% url 'cement_type' %}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {% csrf_token %}
                     <div>
@@ -23,14 +23,14 @@
                         </select>
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" class="w-full gradient-bg text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all duration-300 font-semibold text-sm">Sement Turi Qo'shish</button>
+                        <button type="submit" class="w-full gradient-bg text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all duration-300 font-bold text-sm">Sement Turi Qo'shish</button>
                     </div>
                 </form>
             </div>
             <div id="cementList" class="modern-card rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-1">
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-8">Sement Turlari Ro'yxati</h3>
-                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 font-semibold text-sm shadow-lg">Hisobotni Yuklash</button>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-8">Sement Turlari Ro'yxati</h3>
+                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Hisobotni Yuklash</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div>
@@ -67,14 +67,14 @@
                         <tbody id="cementTable" class="divide-y divide-gray-200 font-medium">
                             {% for cement_type in cement_types %}
                                 <tr>
-                        <td class="px-3 py-2.5 text-sm text-gray-900">{{ cement_type.name }}</td>
-                        <td class="px-3 py-2.5 text-sm">
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ cement_type.name }}</td>
+                        <td class="px-4 py-3 text-sm">
                             <div class="flex items-center space-x-2">
                                 <div class="w-6 h-6 rounded-full border-2 border-gray-300" style="background-color: {{ cement_type.color }}"></div>
                                 <span class="text-gray-700">{{ cement_type.get_color_display }}</span>
                             </div>
                         </td>
-                        <td class="px-3 py-2.5 text-sm"> {{ cement_type.total_quantity | default:0 | format_currency }}</td>
+                        <td class="px-4 py-3 text-sm"> {{ cement_type.total_quantity | default:0 | format_currency }}</td>
                     </tr>
                             {% empty %}
                                 <tr>
@@ -84,9 +84,9 @@
                         </tbody>
                         <tfoot class="bg-slate-100">
                             <tr>
-                                <td class="px-3 py-3 text-sm font-bold text-gray-900">Jami:</td>
+                                <td class="px-4 py-4 text-sm font-bold text-gray-900">Jami:</td>
                                 <td></td>
-                                <td class="px-3 py-3 text-sm font-semibold text-green-700" id="totalDebtPayments">{{ total_quantity | format_currency }} kg</td>
+                                <td class="px-4 py-4 text-sm font-semibold text-green-700" id="totalDebtPayments">{{ total_quantity | format_currency }} kg</td>
                             </tr>
                         </tfoot>
                     </table>

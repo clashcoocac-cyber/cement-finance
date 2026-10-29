@@ -6,7 +6,7 @@
 <div id="debtsContent" class="tab-content">
     <!-- Debt Payment Section -->
     <div class="modern-card rounded-2xl p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Qarz Qabul Qilish</h2>
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Qarz Qabul Qilish</h2>
         <form id="debtForm" action="{% url 'debts' %}" method="POST" class="space-y-4">
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -44,7 +44,7 @@
                 <textarea id="field-comment" name="comment" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" placeholder="Izoh qoldiring..."></textarea>
             </div>
             <div class="flex justify-end">
-                <button type="submit" class="bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-6 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-300 font-semibold text-sm shadow-lg hover:shadow-xl">Qarzni Qabul Qilish</button>
+                <button type="submit" class="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-bold text-sm shadow-lg hover:shadow-xl">Qarzni Qabul Qilish</button>
             </div>
         </form>
         
@@ -54,14 +54,14 @@
     <div id="invoice" class="modern-card rounded-2xl p-6">
         <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Qarz To'lovlari Tarixi</h3>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Qarz To'lovlari Tarixi</h3>
                         <div class="flex gap-2">
                             {% for year in years %}
                             <a href="{% url 'debts' %}?year={{ year }}" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == year %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">{{ year }}</a>
                             {% endfor %}
                         </div>
                     </div>
-                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 font-semibold text-sm shadow-lg">Hisobotni Yuklash</button>
+                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Hisobotni Yuklash</button>
                 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
@@ -85,25 +85,25 @@
             <table class="w-full table-auto">
                 <thead class="bg-slate-100">
                     <tr>
-                        <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800 rounded-tl-2xl">Sana / Vaqt</th>
-                        <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800">Mijoz</th>
-                        <th class="px-3 py-3 text-right text-sm font-semibold text-gray-800">To'langan Summa</th>
-                        <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800">To'lov turi</th>
-                        <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800">Izoh</th>
-                        <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800 rounded-tr-2xl">Amallar</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana / Vaqt</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Mijoz</th>
+                        <th class="px-6 py-5 text-right text-sm font-bold text-gray-800">To'langan Summa</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">To'lov turi</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Izoh</th>
+                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Amallar</th>
                     </tr>
                 </thead>
                 <tbody id="debtPaymentsTable" class="divide-y divide-gray-300 font-medium">
                     {% for payment in payments %}
             <tr>
-                <td class="px-3 py-2.5 text-sm text-gray-900 whitespace-nowrap">
+                <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                     {{ payment.paid_at | date:"d.m.Y" }}
                     <span class="ms-3">{{ payment.paid_at | time:"H:i" }}</span>
                 </td>
-                <td class="px-3 py-2.5 text-sm text-gray-900">{{ payment.customer.name }}</td>
-                <td class="px-3 py-2.5 text-sm font-medium whitespace-nowrap text-right {% if payment.amount < 0 %}text-red-700{% else %}text-green-700{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
-                <td class="px-3 py-2.5 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
-                <td class="px-3 py-2.5 text-sm text-gray-900">
+                <td class="px-4 py-3 text-sm text-gray-900">{{ payment.customer.name }}</td>
+                <td class="px-4 py-3 text-sm font-medium whitespace-nowrap text-right {% if payment.amount < 0 %}text-red-700{% else %}text-green-700{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">
                     {% if payment.comment %}
                         <div class="max-w-[18rem] break-words line-clamp-2 leading-snug" title="{{ payment.comment }}">{{ payment.comment }}</div>
                     {% else %}
@@ -131,7 +131,7 @@
             {% endfor %}
                     {% if not payments %}
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-sm text-gray-500 text-center">Hozircha qarz to'lovlari mavjud emas</td>
+                            <td colspan="6" class="px-4 py-3 text-sm text-gray-500 text-center">Hozircha qarz to'lovlari mavjud emas</td>
                         </tr>
                     {% endif %}
         </tbody>

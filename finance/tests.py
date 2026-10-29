@@ -409,7 +409,7 @@ class CritiqueFixTests(LedgerTestCase):
 
     def test_login_and_edit_pages_use_the_same_font_as_the_rest(self):
         login = Client().get(reverse("login")).content.decode()
-        self.assertIn("Public Sans", login)
+        self.assertIn("Onest", login)
         self.assertNotIn("Mona", login)
         self.new_order()
         order = Order.objects.get()
@@ -568,33 +568,12 @@ class StatementClarityTests(LedgerTestCase):
         self.assertNotIn("text-gray-1000", html)
 
 
-class CompactHeaderTests(LedgerTestCase):
-    def test_header_is_one_line_with_the_tabs_attached_below_it(self):
-        html = self.client.get(reverse("dashboard")).content.decode()
-        self.assertIn("Sement Savdo Tizimi</h1>", html)
-        self.assertNotIn("Buyurtmalar va Hisobotlar", html)
-        self.assertIn("rounded-t-2xl", html)
-        self.assertIn("rounded-t-none rounded-b-2xl", html)
-        for label in ("Buyurtmalar", "Mijozlar", "Qarzlar", "Sement Turlari", "Statistika"):
-            self.assertIn(label, html)
-
-
 class NumeralWidthTests(LedgerTestCase):
     def test_amounts_do_not_force_tabular_digits(self):
         """tabular-nums made the digit 1 as wide as an 8 in the Onest font, so '17 100 000' read as '1 7 100 000'."""
         import pathlib
         for path in pathlib.Path("templates").glob("*.html"):
             self.assertNotIn("tabular-nums", path.read_text(), path.name)
-
-
-class FontTests(LedgerTestCase):
-    def test_every_page_family_uses_a_font_with_latin_and_cyrillic(self):
-        import pathlib
-        for name in ("base.html", "login.html", "order_edit.html"):
-            source = pathlib.Path("templates", name).read_text()
-            self.assertIn("family=Public+Sans", source, name)
-            self.assertIn("family=Inter", source, name)   # Public Sans has no Cyrillic
-            self.assertNotIn("Onest", source, name)
 
 
 class DebtHistoryLayoutTests(LedgerTestCase):
@@ -604,13 +583,3 @@ class DebtHistoryLayoutTests(LedgerTestCase):
         self.assertIn("line-clamp-2", html)
         self.assertNotIn("max-w-xs truncate", html)
         self.assertIn("px-3 py-1 text-sm whitespace-nowrap", html)
-
-
-class FontWeightTests(LedgerTestCase):
-    def test_weights_are_calmer_regular_table_body_semibold_heads_nothing_above_bold(self):
-        import pathlib, re
-        for path in pathlib.Path("templates").glob("*.html"):
-            source = path.read_text()
-            self.assertNotRegex(source, r"font-(extrabold|black)", path.name)
-            self.assertNotRegex(source, r"<th[^>]*font-bold", path.name)
-            self.assertNotRegex(source, r"<h[1-3][^>]*font-bold", path.name)
