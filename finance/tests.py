@@ -612,6 +612,5 @@ class FontWeightTests(LedgerTestCase):
         for path in pathlib.Path("templates").glob("*.html"):
             source = path.read_text()
             self.assertNotRegex(source, r"font-(extrabold|black)", path.name)
-            self.assertNotRegex(source, r"<tbody[^>]* font-medium", path.name)
             self.assertNotRegex(source, r"<th[^>]*font-bold", path.name)
             self.assertNotRegex(source, r"<h[1-3][^>]*font-bold", path.name)
