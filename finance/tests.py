@@ -384,10 +384,10 @@ class CritiqueFixTests(LedgerTestCase):
             self.assertNotIn("card-hover", classes, url)
             self.assertNotIn("from-green-100", classes, url)
 
-    def test_money_columns_are_right_aligned_tabular_numerals(self):
+    def test_money_columns_are_right_aligned(self):
         self.new_order()
         html = self.client.get(reverse("dashboard") + "?date_from=2000-01-01&date_to=2999-12-31").content.decode()
-        self.assertGreaterEqual(html.count("text-right tabular-nums"), 6)
+        self.assertGreaterEqual(html.count("text-right"), 6)
 
     # --- accessibility ---------------------------------------------------------------------------------------
     def test_every_label_points_at_a_real_field_and_no_id_is_used_twice(self):
@@ -577,3 +577,11 @@ class CompactHeaderTests(LedgerTestCase):
         self.assertIn("rounded-t-none rounded-b-2xl", html)
         for label in ("Buyurtmalar", "Mijozlar", "Qarzlar", "Sement Turlari", "Statistika"):
             self.assertIn(label, html)
+
+
+class NumeralWidthTests(LedgerTestCase):
+    def test_amounts_do_not_force_tabular_digits(self):
+        """tabular-nums made the digit 1 as wide as an 8 in the Onest font, so '17 100 000' read as '1 7 100 000'."""
+        import pathlib
+        for path in pathlib.Path("templates").glob("*.html"):
+            self.assertNotIn("tabular-nums", path.read_text(), path.name)

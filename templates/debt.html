@@ -101,7 +101,7 @@
                     <span class="ms-3">{{ payment.paid_at | time:"H:i" }}</span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.customer.name }}</td>
-                <td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-right tabular-nums {% if payment.amount < 0 %}text-red-700{% else %}text-green-700{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
+                <td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-right {% if payment.amount < 0 %}text-red-700{% else %}text-green-700{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">
                     {% if payment.comment %}
@@ -138,7 +138,7 @@
         <tfoot class="bg-slate-100">
                             <tr>
                                 <td colspan="2" class="px-6 py-5 text-sm font-bold text-gray-800">JAMI:</td>
-                                <td class="px-6 py-5 text-sm font-bold text-green-700 text-right tabular-nums whitespace-nowrap" id="totalDebtPayments">{{ total_amount | format_currency }} so'm</td>
+                                <td class="px-6 py-5 text-sm font-bold text-green-700 text-right whitespace-nowrap" id="totalDebtPayments">{{ total_amount | format_currency }} so'm</td>
                                 <td colspan="3" class="px-6 py-5 text-sm font-bold text-gray-800"></td>
                             </tr>
                         </tfoot>
