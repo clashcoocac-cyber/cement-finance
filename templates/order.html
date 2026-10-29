@@ -87,7 +87,7 @@
                         </div>
                     <div>
                         <label for="filterCement" class="block text-sm font-medium text-gray-700 mb-1">Sement turi bo'yicha</label>
-                        <select onchange="setFilter()" id="filterCement" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium" onchange="filterOrders()">
+                        <select onchange="setFilter()" id="filterCement" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium">
                             <option value="">Barcha turlar</option>
                             {% for cement_type in cement_types %}
                                 <option value="{{ cement_type.id }}" {% if request.GET.cement_type_id == cement_type.id|slugify %}selected{%endif %}>{{ cement_type.name }} {{ cement_type.color }}</option>
@@ -96,11 +96,11 @@
                     </div>
                     <div>
                         <label for="filterDateFrom" class="block text-sm font-medium text-gray-700 mb-1">Sana (dan)</label>
-                        <input type="text" data-uz-date onchange="setFilter()" value="{% if request.GET.date_from %}{{ request.GET.date_from }}{% else %}{{ today }}{% endif %}" name="date_from" id="filterDateFrom" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium" onchange="filterOrders()">
+                        <input type="text" data-uz-date onchange="setFilter()" value="{% if request.GET.date_from %}{{ request.GET.date_from }}{% else %}{{ today }}{% endif %}" name="date_from" id="filterDateFrom" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium">
                     </div>
                     <div>
                         <label for="filterDateTo" class="block text-sm font-medium text-gray-700 mb-1">Sana (gacha)</label>
-                        <input type="text" data-uz-date onchange="setFilter()" value="{% if request.GET.date_to %}{{ request.GET.date_to }}{% else %}{{ today }}{% endif %}" name="date_to" id="filterDateTo" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium" onchange="filterOrders()">
+                        <input type="text" data-uz-date onchange="setFilter()" value="{% if request.GET.date_to %}{{ request.GET.date_to }}{% else %}{{ today }}{% endif %}" name="date_to" id="filterDateTo" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium">
                     </div>
                 </div>
             </div>
@@ -304,7 +304,7 @@
                 filteredClients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectClient(client);
                     dropdown.appendChild(option);
                 });
@@ -365,7 +365,7 @@ function searchFilterClients() {
                 dropdown.classList.add('hidden');
                 // Clear filter when search is empty
                 document.getElementById('selectedFilterClientId').value = '';
-                filterClientsList();
+
                 return;
             }
             
@@ -389,7 +389,7 @@ function searchFilterClients() {
                 filteredClients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectFilterClient(client);
                     dropdown.appendChild(option);
                 });
@@ -432,7 +432,7 @@ function searchFilterClients() {
                 clients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectFilterClient(client);
                     dropdown.appendChild(option);
                 });

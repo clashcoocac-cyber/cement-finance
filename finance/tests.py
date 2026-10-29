@@ -426,3 +426,50 @@ class CritiqueFixTests(LedgerTestCase):
         html = self.page("dashboard")
         self.assertIn("tr[onclick], td[onclick]", html)
         self.assertIn("e.key === 'Enter'", html)
+
+
+class RegressionFromTheReviewTests(LedgerTestCase):
+    """Problems the second critique found in the first round of fixes."""
+
+    def test_the_order_edit_page_defines_its_own_postto_and_esc_so_delete_works(self):
+        self.new_order()
+        order = Order.objects.get()
+        html = self.client.get(reverse("order_edit", args=[order.pk])).content.decode()
+        self.assertIn("function postTo(url)", html)
+        self.assertIn("function esc(value)", html)
+        self.assertIn(f"postTo(`/order/delete/{order.pk}/`)", html)
+
+    def test_names_are_escaped_before_they_go_into_innerhtml_on_every_page(self):
+        import pathlib
+        for path in sorted(pathlib.Path("templates").glob("*.html")):
+            source = path.read_text()
+            self.assertNotIn("${client.name}", source, path.name)
+            self.assertNotIn("${client.phone}", source, path.name)
+            if "innerHTML = `" in source and "client." in source:
+                self.assertIn("${esc(client.name)}", source, path.name)
+        self.assertIn("function esc(value)", Client().get(reverse("login")).content.decode() + self.client.get(reverse("dashboard")).content.decode())
+
+    def test_a_validation_error_on_the_order_edit_page_is_shown(self):
+        self.new_order()
+        order = Order.objects.get()
+        response = self.client.post(reverse("order_edit", args=[order.pk]), {
+            "customer_id": self.customer.pk, "cement_type_id": self.cement.pk, "quantity": 0,
+            "price_per_kg": 10, "road_cost": 0, "paid_amount": 0, "car_number": "x"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'role="alert"')
+        self.assertContains(response, "Miqdor 0 dan katta")
+
+    def test_login_failures_and_the_lockout_are_visible_in_uzbek(self):
+        User.objects.create_user("worker", password="right-pass-123")
+        bad = Client().post(reverse("login"), {"username": "worker", "password": "nope"})
+        self.assertContains(bad, "Login yoki parol noto&#x27;g&#x27;ri")
+        for _ in range(5):
+            Client().post(reverse("login"), {"username": "worker", "password": "nope"})
+        locked = Client().post(reverse("login"), {"username": "worker", "password": "right-pass-123"})
+        self.assertEqual(locked.status_code, 429)
+        self.assertContains(locked, "Juda ko&#x27;p noto&#x27;g&#x27;ri urinish", status_code=429)
+
+    def test_the_filter_script_no_longer_calls_a_function_that_does_not_exist(self):
+        import pathlib
+        for path in pathlib.Path("templates").glob("*.html"):
+            self.assertNotIn("filterClientsList()", path.read_text(), path.name)

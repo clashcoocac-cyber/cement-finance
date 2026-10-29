@@ -27,10 +27,38 @@
                 box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             }
         </style>
+        <script>
+            // Shared helpers of this page (the other pages get them from base.html).
+            function esc(value) {
+                return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+                    return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+                });
+            }
+            // Deleting is a POST (with the CSRF token), never a plain link.
+            function postTo(url) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+                const token = document.createElement('input');
+                token.type = 'hidden';
+                token.name = 'csrfmiddlewaretoken';
+                token.value = '{{ csrf_token }}';
+                form.appendChild(token);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        </script>
     </head>
     <body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
 {{ customers|customers_data|json_script:"clients-data" }}
     <div class="max-w-7xl mx-auto px-6 py-8">
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div role="alert" class="rounded-lg border px-4 py-3 text-sm {% if message.level_tag == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-700{% endif %}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <div id="ordersContent" class="tab-content mt-5">
             <!-- Add New Order -->
@@ -171,7 +199,7 @@
                 filteredClients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectClient(client);
                     dropdown.appendChild(option);
                 });
@@ -232,7 +260,7 @@ function searchFilterClients() {
                 dropdown.classList.add('hidden');
                 // Clear filter when search is empty
                 document.getElementById('selectedFilterClientId').value = '';
-                filterClientsList();
+
                 return;
             }
             
@@ -256,7 +284,7 @@ function searchFilterClients() {
                 filteredClients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectFilterClient(client);
                     dropdown.appendChild(option);
                 });
@@ -299,7 +327,7 @@ function searchFilterClients() {
                 clients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectFilterClient(client);
                     dropdown.appendChild(option);
                 });

@@ -73,11 +73,11 @@
                         </div>
                     <div>
                         <label for="filterDebtDateFrom" class="block text-sm font-medium text-gray-700 mb-1">Sana (dan)</label>
-                        <input onchange="setFilter()" value="{{ date_from }}" type="text" data-uz-date id="filterDebtDateFrom" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
+                        <input onchange="setFilter()" value="{{ date_from }}" type="text" data-uz-date id="filterDebtDateFrom" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm">
                     </div>
                     <div>
                         <label for="filterDebtDateTo" class="block text-sm font-medium text-gray-700 mb-1">Sana (gacha)</label>
-                        <input onchange="setFilter()" value="{{ date_to }}" type="text" data-uz-date id="filterDebtDateTo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
+                        <input onchange="setFilter()" value="{{ date_to }}" type="text" data-uz-date id="filterDebtDateTo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm">
                     </div>
                 </div>
         <div class="overflow-x-auto">
@@ -184,7 +184,7 @@
                 filteredClients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectClient(client);
                     dropdown.appendChild(option);
                 });
@@ -258,7 +258,7 @@ function searchFilterClients() {
                 dropdown.classList.add('hidden');
                 // Clear filter when search is empty
                 document.getElementById('selectedFilterClientId').value = '';
-                filterClientsList();
+
                 return;
             }
             
@@ -282,7 +282,7 @@ function searchFilterClients() {
                 filteredClients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectFilterClient(client);
                     dropdown.appendChild(option);
                 });
@@ -325,7 +325,7 @@ function searchFilterClients() {
                 clients.forEach(client => {
                     const option = document.createElement('div');
                     option.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100';
-                    option.innerHTML = `<div class="font-medium">${client.name}</div><div class="text-gray-500 text-xs">${client.phone}</div>`;
+                    option.innerHTML = `<div class="font-medium">${esc(client.name)}</div><div class="text-gray-500 text-xs">${esc(client.phone)}</div>`;
                     option.onclick = () => selectFilterClient(client);
                     dropdown.appendChild(option);
                 });

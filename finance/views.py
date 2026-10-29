@@ -3,6 +3,7 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView as LView
 from django.core.cache import cache
 from django.db import models, transaction
@@ -41,9 +42,17 @@ def _count_failure(key):
         cache.set(key, 1, LOCKOUT_SECONDS)
 
 
+class UzbekAuthenticationForm(AuthenticationForm):
+    error_messages = {
+        "invalid_login": "Login yoki parol noto'g'ri. Ikkalasini ham tekshirib, qayta urinib ko'ring.",
+        "inactive": "Bu hisob faol emas.",
+    }
+
+
 class LoginView(LView):
     """Sign-in with a brake on password guessing: 5 wrong tries per username (30 per address), then 15 minutes."""
     template_name = "login.html"
+    authentication_form = UzbekAuthenticationForm
     redirect_authenticated_user = True
 
     def _throttle_keys(self):

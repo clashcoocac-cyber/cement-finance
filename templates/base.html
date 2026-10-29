@@ -27,6 +27,14 @@
         </style>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"
               integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt" crossorigin="anonymous">
+        <script>
+            // Customer names reach the page as data (JSON); anything put into innerHTML goes through esc() first.
+            function esc(value) {
+                return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+                    return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+                });
+            }
+        </script>
     </head>
     <body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-6 py-8">
