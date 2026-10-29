@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 {% block content %}
+{{ customers|customers_data|json_script:"clients-data" }}
 
 <div id="debtsContent" class="tab-content">
     <!-- Debt Payment Section -->
-    <div class="modern-card rounded-2xl p-6 mb-6 card-hover">
+    <div class="modern-card rounded-2xl p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Qarz Qabul Qilish</h2>
         <form action="{% url 'debts' %}" method="POST" class="space-y-4">
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>
+                    <label for="clientSearch" class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>
                     <div class="relative">
                         <input value="{{ order.customer.name }}" type="text" required id="clientSearch" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm" placeholder="Mijoz qidirish..." oninput="searchClients()" onfocus="showClientDropdown()" onblur="hideClientDropdown()">
                         <div id="clientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
@@ -20,11 +21,12 @@
                     <input type="hidden" name="customer_id" id="selectedClientId" value="{{ order.customer.id }}">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">To'langan Summa</label>
-                    <input type="text" name="payment_amount" id="paidDebtAmount" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" placeholder="0">
+                    <label for="paidDebtAmount" class="block text-sm font-medium text-gray-700 mb-1">To'langan Summa</label>
+                    <input type="text" inputmode="numeric" autocomplete="off" oninput="groupAmount(this)" name="payment_amount" id="paidDebtAmount" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" placeholder="0">
+                    <p class="mt-1 text-xs text-gray-600">Manfiy summa (masalan -500 000) mijozga berilgan pul hisoblanadi va qarzini oshiradi.</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">To'lov turi</label>
+                    <label for="debtPaymentType" class="block text-sm font-medium text-gray-700 mb-1">To'lov turi</label>
                     <select name="payment_type" id="debtPaymentType" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm">
                         <option value="">To'lov turini tanlang</option>
                         {% for choice in payment_type_choices %}
@@ -33,58 +35,58 @@
                     </select>
                 </div>
             </div>
+            <div id="clientDebtInfo" class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg hidden" role="status" aria-live="polite">
+                <p id="clientDebtDetails" class="text-yellow-900 text-sm"></p>
+            </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Izoh</label>
-                <textarea name="comment" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" placeholder="Izoh qoldiring..."></textarea>
+                <label for="field-comment" class="block text-sm font-medium text-gray-700 mb-1">Izoh</label>
+                <textarea id="field-comment" name="comment" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" placeholder="Izoh qoldiring..."></textarea>
             </div>
             <div class="flex justify-end">
                 <button type="submit" class="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-bold text-sm shadow-lg hover:shadow-xl">Qarzni Qabul Qilish</button>
             </div>
         </form>
-        <div id="clientDebtInfo" class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg hidden">
-            <h3 class="font-bold text-yellow-800 mb-1 text-sm">Mijoz Qarz Ma'lumoti:</h3>
-            <p id="clientDebtDetails" class="text-yellow-700 text-sm">Bobur Hamroev ning jami qarzi: 2,156 so'm</p>
-        </div>
+        
     </div>
 
     <!-- Debt Payments History -->
-    <div id="invoice" class="glass-card rounded-3xl shadow-2xl p-10 card-hover">
+    <div id="invoice" class="modern-card rounded-2xl p-6">
         <div class="flex justify-between items-center mb-6">
                     <div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-4">Qarz To'lovlari Tarixi</h3>
                         <div class="flex gap-2">
-                            <a href="{% url 'debts' %}?year=2024" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2024 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2024</a>
-                            <a href="{% url 'debts' %}?year=2025" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2025 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2025</a>
-                            <a href="{% url 'debts' %}?year=2026" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2026 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2026</a>
+                            {% for year in years %}
+                            <a href="{% url 'debts' %}?year={{ year }}" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == year %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">{{ year }}</a>
+                            {% endfor %}
                         </div>
                     </div>
                     <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Hisobotni Yuklash</button>
                 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Mijoz nomi bo'yicha</label>
+                            <label for="filterClientNameSearch" class="block text-sm font-medium text-gray-700 mb-1">Mijoz nomi bo'yicha</label>
                             <div class="relative">
                                 <input type="text" id="filterClientNameSearch" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 text-sm" placeholder="Mijoz qidirish..." oninput="searchFilterClients()" onfocus="showFilterClientDropdown()" onblur="hideFilterClientDropdown()">
-                                <div id="filterClientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden"><div class="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 font-medium text-blue-600"><div>📋 Barcha mijozlar</div></div><div class="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100"><div class="font-medium">Anvar Karimov</div><div class="text-gray-500 text-xs">+998901234567</div></div><div class="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100"><div class="font-medium">Bobur Hamroev</div><div class="text-gray-500 text-xs">+998901234568</div></div><div class="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100"><div class="font-medium">Dilshod Umarov</div><div class="text-gray-500 text-xs">+998901234569</div></div></div>
+                                <div id="filterClientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden"></div>
                             </div>
                             <input oninput="setFilter()" type="hidden" id="selectedFilterClientId" name="customer_id" value="">
                         </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sana (dan)</label>
+                        <label for="filterDebtDateFrom" class="block text-sm font-medium text-gray-700 mb-1">Sana (dan)</label>
                         <input onchange="setFilter()" value="{{ date_from }}" type="text" data-uz-date id="filterDebtDateFrom" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sana (gacha)</label>
+                        <label for="filterDebtDateTo" class="block text-sm font-medium text-gray-700 mb-1">Sana (gacha)</label>
                         <input onchange="setFilter()" value="{{ date_to }}" type="text" data-uz-date id="filterDebtDateTo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
                     </div>
                 </div>
         <div class="overflow-x-auto">
             <table class="w-full table-auto">
-                <thead class="bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl">
+                <thead class="bg-slate-100">
                     <tr>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana / Vaqt</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Mijoz</th>
-                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">To'langan Summa</th>
+                        <th class="px-6 py-5 text-right text-sm font-bold text-gray-800">To'langan Summa</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">To'lov turi</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Izoh</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Amallar</th>
@@ -98,13 +100,13 @@
                     <span class="ms-3">{{ payment.paid_at | time:"H:i" }}</span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.customer.name }}</td>
-                <td class="px-6 py-4 text-sm text-green-600 font-medium whitespace-nowrap">{{ payment.amount | format_currency }}&nbsp;so'm</td>
+                <td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-right tabular-nums {% if payment.amount < 0 %}text-red-700{% else %}text-green-700{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">
                     {% if payment.comment %}
                         <div class="max-w-xs truncate" title="{{ payment.comment }}">{{ payment.comment }}</div>
                     {% else %}
-                        <span class="text-gray-400">-</span>
+                        <span class="text-gray-500">-</span>
                     {% endif %}
                 </td>
                 
@@ -116,7 +118,7 @@
                             </svg>
                             <span class="text-sm font-medium">Tahrirlash</span>
                         </a>
-                        <a href="#" onclick="if (confirm(`Rostan ham o'chirmoqchimisiz`)) postTo(`{% url 'payment_delete' payment.id %}`); return false;" class="text-red-600 hover:text-red-800 px-3 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 flex items-center space-x-1">
+                        <a href="#" data-confirm="{{ payment.customer.name }}: {{ payment.amount | format_currency }} so'm ({{ payment.paid_at | date:"d.m.Y" }}) to'lovi o'chirilsinmi? Mijozning qarzi shunga qarab o'zgaradi." onclick="if (confirm(this.dataset.confirm)) postTo(`{% url 'payment_delete' payment.id %}`); return false;" class="ml-3 text-gray-600 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 flex items-center space-x-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -132,10 +134,10 @@
                         </tr>
                     {% endif %}
         </tbody>
-        <tfoot class="bg-gradient-to-r from-green-100 to-emerald-100">
+        <tfoot class="bg-slate-100">
                             <tr>
                                 <td colspan="2" class="px-6 py-5 text-sm font-bold text-gray-800">JAMI:</td>
-                                <td class="px-6 py-5 text-sm font-bold text-green-600" id="totalDebtPayments">{{ total_amount | format_currency }} so'm</td>
+                                <td class="px-6 py-5 text-sm font-bold text-green-700 text-right tabular-nums whitespace-nowrap" id="totalDebtPayments">{{ total_amount | format_currency }} so'm</td>
                                 <td colspan="3" class="px-6 py-5 text-sm font-bold text-gray-800"></td>
                             </tr>
                         </tfoot>
@@ -159,6 +161,7 @@
     }
 
     function searchClients() {
+            document.getElementById('clientDebtInfo').classList.add('hidden');
             const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
             const dropdown = document.getElementById('clientDropdown');
             
@@ -194,6 +197,21 @@
             document.getElementById('clientSearch').value = client.name;
             document.getElementById('selectedClientId').value = client.id;
             document.getElementById('clientDropdown').classList.add('hidden');
+            const debt = Number(client.debt) || 0;
+            document.getElementById('clientDebtDetails').textContent =
+                client.name + ' ning joriy qarzi: ' + formatSom(debt) + " so'm";
+            document.getElementById('clientDebtInfo').classList.remove('hidden');
+        }
+
+        function formatSom(value) {
+            return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+        }
+
+        // Group digits while typing (1500000 -> 1 500 000); a leading minus is kept (money given out to a customer).
+        function groupAmount(input) {
+            const negative = input.value.trim().startsWith('-');
+            const digits = input.value.replace(/\D/g, '');
+            input.value = (negative ? '-' : '') + digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
         }
 
         function showClientDropdown() {
@@ -254,7 +272,7 @@ function searchFilterClients() {
             // Add "Barcha mijozlar" option
             const allOption = document.createElement('div');
             allOption.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 font-medium text-blue-600';
-            allOption.innerHTML = '<div>📋 Barcha mijozlar</div>';
+            allOption.innerHTML = '<div>Barcha mijozlar</div>';
             allOption.onclick = () => selectFilterClient(null);
             dropdown.appendChild(allOption);
             
@@ -299,7 +317,7 @@ function searchFilterClients() {
                 // Add "Barcha mijozlar" option
                 const allOption = document.createElement('div');
                 allOption.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 font-medium text-blue-600';
-                allOption.innerHTML = '<div>📋 Barcha mijozlar</div>';
+                allOption.innerHTML = '<div>Barcha mijozlar</div>';
                 allOption.onclick = () => selectFilterClient(null);
                 dropdown.appendChild(allOption);
                 
@@ -322,11 +340,7 @@ function searchFilterClients() {
             }, 200);
         }
 
-        let clients = [
-            {% for customer in customers %}
-                {'id': '{{ customer.id }}', 'name': '{{ customer.name }}', 'phone': '{{ customer.phone }}'},
-            {% endfor %}
-        ]
+        let clients = JSON.parse(document.getElementById('clients-data').textContent);
 
 </script>
 

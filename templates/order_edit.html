@@ -9,8 +9,8 @@
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
-            body { font-family: 'Mona Sans', sans-serif; }
+            @import url('https://fonts.googleapis.com/css2?family=Onest:ital,wght@0,200..900;1,200..900&display=swap');
+            body { font-family: 'Onest', sans-serif; }
             .modern-card {
                 background: white;
                 border: 1px solid #e5e7eb;
@@ -29,11 +29,12 @@
         </style>
     </head>
     <body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
+{{ customers|customers_data|json_script:"clients-data" }}
     <div class="max-w-7xl mx-auto px-6 py-8">
 
         <div id="ordersContent" class="tab-content mt-5">
             <!-- Add New Order -->
-            <div class="modern-card rounded-2xl p-8 mb-8 card-hover">
+            <div class="modern-card rounded-2xl p-8 mb-8">
                 <h2 class="text-2xl font-bold text-blue-800 mb-2">Buyurtma O'zgaritish</h2>
                 <p class="mb-8 text-sm">
                     <span class="text-gray-600">{{ order.order_date|date:"d.m.Y" }}</span> /
@@ -45,7 +46,7 @@
                     <div class="lg:col-span-2">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Mijoz</label>
+                                <label for="clientSearch" class="block text-sm font-medium text-gray-800 mb-3">Mijoz</label>
                                 <div class="relative">
                                     <input value="{{ order.customer.name }}" type="text" required id="clientSearch" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm" placeholder="Mijoz qidirish..." oninput="searchClients()" onfocus="showClientDropdown()" onblur="hideClientDropdown()">
                                     <div id="clientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
@@ -55,7 +56,7 @@
                                 <input type="hidden" name="customer_id" id="selectedClientId" value="{{ order.customer.id }}">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Sement Turi</label>
+                                <label for="cementSelect" class="block text-sm font-medium text-gray-800 mb-3">Sement Turi</label>
                                 <select id="cementSelect" name="cement_type_id" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm">
                                     <option value="">Sement turini tanlang</option>
                                     {% for cement_type in cement_types %}
@@ -64,23 +65,23 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Miqdori (kg)</label>
+                                <label for="quantity" class="block text-sm font-medium text-gray-800 mb-3">Miqdori (kg)</label>
                                 <input value="{{ order.quantity }}" onchange="calculateTotal()" name="quantity" required type="number" id="quantity" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Narxi (so'm/kg)</label>
+                                <label for="price" class="block text-sm font-medium text-gray-800 mb-3">Narxi (so'm/kg)</label>
                                 <input value="{{ order.price_per_kg }}" onchange="calculateTotal()" name="price_per_kg" required type="number" id="price" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Yo'l Xarajati</label>
+                                <label for="transportCost" class="block text-sm font-medium text-gray-800 mb-3">Yo'l Xarajati</label>
                                 <input value="{{ order.road_cost }}" type="number" id="transportCost" name="road_cost" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Olingan Pul</label>
+                                <label for="paidAmount" class="block text-sm font-medium text-gray-800 mb-3">Olingan Pul</label>
                                 <input value="{{ order.paid_amount }}" type="number" id="paidAmount" name="paid_amount" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Mashina Raqami</label>
+                                <label for="carNumber" class="block text-sm font-medium text-gray-800 mb-3">Mashina Raqami</label>
                                 <input value="{{ order.car_number }}" type="text" id="carNumber" name="car_number" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="01A123BC">
                             </div>
                         </div>
@@ -91,16 +92,16 @@
                         <div class="bg-gray-50 rounded-xl p-6 space-y-4">
                             <h3 class="text-lg font-bold text-gray-800 mb-4">Hisob-kitob</h3>
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Jami Summa</label>
+                                <label for="grandTotal" class="block text-sm font-medium text-gray-800 mb-3">Jami Summa</label>
                                 <input type="text" id="grandTotal" class="py-3 w-full p-4 border border-blue-300 rounded-xl bg-blue-50 text-blue-800 font-bold shadow-sm text" readonly>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-3">Qolgan Qarz</label>
+                                <label for="remainingDebt" class="block text-sm font-medium text-gray-800 mb-3">Qolgan Qarz</label>
                                 <input type="text" id="remainingDebt" class="py-3 w-full p-4 border border-red-300 rounded-xl bg-red-50 text-red-800 font-bold shadow-sm text" readonly>
                             </div>
                             <div class="pt-4">
                                 <button type="submit" class="w-full mb-4 bg-gradient-to-r from-teal-600 to-green-600 text-white py-3 px-8 rounded-xl hover:from-teal-700 hover:to-green-700 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Saqlash</button>
-                                <button type="none" onclick="window.location.href = `{% url 'dashboard' %}`" class="w-full mb-4 bg-gray-500 text-white py-3 px-8 rounded-xl hover:bg-gray-600 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Bekor qilish</button>
+                                <button type="button" onclick="window.location.href = `{% url 'dashboard' %}`" class="w-full mb-4 bg-gray-500 text-white py-3 px-8 rounded-xl hover:bg-gray-600 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Bekor qilish</button>
                                 <div role="button" tabindex="0" onclick="if (confirm(`Buyurtmani o'chirmoqchimisiz? Mijozning qarzi shunga qarab o'zgaradi.`)) postTo(`{% url 'order_delete' order.id %}`)" class="cursor-pointer text-center w-full bg-red-600 text-white py-3 px-8 rounded-xl hover:bg-red-700 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">O'chirish</div>
                             </div>
                         </div>
@@ -145,11 +146,7 @@
 
             window.location.search = urlParams.toString();
         }
-        let clients = [
-            {% for customer in customers %}
-            {'id': '{{ customer.id }}', 'name': '{{ customer.name }}', 'phone': '{{ customer.phone }}'},
-            {% endfor %}
-        ]
+        let clients = JSON.parse(document.getElementById('clients-data').textContent);
 
         function searchClients() {
             const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
@@ -249,7 +246,7 @@ function searchFilterClients() {
             // Add "Barcha mijozlar" option
             const allOption = document.createElement('div');
             allOption.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 font-medium text-blue-600';
-            allOption.innerHTML = '<div>📋 Barcha mijozlar</div>';
+            allOption.innerHTML = '<div>Barcha mijozlar</div>';
             allOption.onclick = () => selectFilterClient(null);
             dropdown.appendChild(allOption);
             
@@ -294,7 +291,7 @@ function searchFilterClients() {
                 // Add "Barcha mijozlar" option
                 const allOption = document.createElement('div');
                 allOption.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 font-medium text-blue-600';
-                allOption.innerHTML = '<div>📋 Barcha mijozlar</div>';
+                allOption.innerHTML = '<div>Barcha mijozlar</div>';
                 allOption.onclick = () => selectFilterClient(null);
                 dropdown.appendChild(allOption);
                 

@@ -20,6 +20,7 @@ from finance.forms import (
     PaymentForm,
 )
 from finance.models import CementType, Customer, Order, PaymentHistory, change_customer_debt
+from finance.templatetags.custom_filters import format_currency
 
 
 MAX_FAILED_LOGINS = 5          # per username from one address
@@ -75,6 +76,18 @@ class LogoutView(View):
 
         logout(request)
         return redirect("login")
+
+
+def money(value):
+    """An amount for a message: 1 500 000 (non-breaking spaces)."""
+    return format_currency(value)
+
+
+def year_choices(selected_year, first_year=None):
+    """Year tabs: from 2024 (or the first year with data) to the current year, so they grow with the calendar."""
+    today = date.today()
+    start = min(2024, first_year or today.year, selected_year)
+    return list(range(start, max(today.year, selected_year) + 1))
 
 
 def flash_errors(request, form):
@@ -285,7 +298,12 @@ class OrderView(LoginRequiredMixin, View):
     def post(self, request):
         form = OrderForm(request.POST)
         if form.is_valid():
-            form.save()
+            order = form.save()
+            messages.success(
+                request,
+                f"Buyurtma saqlandi: {order.customer.name}, jami {money(order.total_sum)} so'm, "
+                f"qolgan qarz {money(order.remaining_debt)} so'm.",
+            )
         else:
             flash_errors(request, form)
         return redirect("dashboard")
@@ -313,7 +331,8 @@ class OrderEditView(LoginRequiredMixin, View):
         form = OrderForm(request.POST, instance=order)
 
         if form.is_valid():
-            form.save()
+            saved = form.save()
+            messages.success(request, f"Buyurtma yangilandi: {saved.customer.name}.")
             return redirect("dashboard")
 
         flash_errors(request, form)
@@ -328,6 +347,7 @@ class OrderDeleteView(LoginRequiredMixin, View):
             order = get_object_or_404(Order, id=pk)
             change_customer_debt(order.customer_id, -order.remaining_debt)   # no-op when the customer is gone
             order.delete()
+        messages.success(request, "Buyurtma o'chirildi.")
         return redirect("dashboard")
 
 
@@ -358,7 +378,8 @@ class CustomerView(LoginRequiredMixin, View):
 
         form = CustomerForm(request.POST)
         if form.is_valid():
-            form.save()
+            customer = form.save()
+            messages.success(request, f"Mijoz qo'shildi: {customer.name}.")
         else:
             flash_errors(request, form)
         return redirect("customer")
@@ -368,7 +389,8 @@ class CustomerView(LoginRequiredMixin, View):
         customer = get_object_or_404(Customer, id=customer_id)
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
-            form.save(update=True)
+            customer = form.save(update=True)
+            messages.success(request, f"Mijoz ma'lumotlari yangilandi: {customer.name}.")
         else:
             flash_errors(request, form)
         return redirect("customer")
@@ -384,7 +406,9 @@ class CustomerDeleteView(LoginRequiredMixin, View):
                 {"error": "Bu mijozda buyurtma, to'lov yoki qarz bor, shuning uchun o'chirib bo'lmaydi."},
                 status=409,
             )
+        name = customer.name
         customer.delete()
+        messages.success(request, f"Mijoz o'chirildi: {name}.")
         return HttpResponse(status=204)
 
 
@@ -427,6 +451,10 @@ class DebtView(LoginRequiredMixin, View):
             "date_to": date_to,
             "payment_type_choices": PaymentHistory.PaymentTypeChoices.choices,
             "selected_year": selected_year,
+            "years": year_choices(
+                selected_year,
+                PaymentHistory.objects.order_by("paid_at").values_list("paid_at__year", flat=True).first(),
+            ),
             "page": "debt",
         }
         return render(request, self.template_name, context=context)
@@ -434,7 +462,13 @@ class DebtView(LoginRequiredMixin, View):
     def post(self, request):
         form = PaymentForm(request.POST)
         if form.is_valid():
-            form.save()
+            payment = form.save()
+            debt = Customer.objects.get(pk=payment.customer_id).total_debt
+            if payment.amount < 0:
+                what = f"Mijozga berilgan pul saqlandi: {payment.customer.name}, {money(-payment.amount)} so'm."
+            else:
+                what = f"To'lov saqlandi: {payment.customer.name}, {money(payment.amount)} so'm."
+            messages.success(request, f"{what} Mijozning joriy qarzi: {money(debt)} so'm.")
         else:
             flash_errors(request, form)
         return redirect("debts")
@@ -461,7 +495,8 @@ class PaymentEditView(LoginRequiredMixin, View):
         form = PaymentEditForm(request.POST, instance=payment)
 
         if form.is_valid():
-            form.save()
+            saved = form.save()
+            messages.success(request, f"To'lov yangilandi: {saved.customer.name}.")
             return redirect("debts")
 
         flash_errors(request, form)
@@ -476,6 +511,7 @@ class PaymentDeleteView(LoginRequiredMixin, View):
             payment = get_object_or_404(PaymentHistory, id=pk)
             change_customer_debt(payment.customer_id, payment.amount)
             payment.delete()
+        messages.success(request, "To'lov o'chirildi.")
         return redirect("debts")
 
 
@@ -526,13 +562,17 @@ class CementTypeView(LoginRequiredMixin, View):
     def post(self, request):
         form = CementTypeForm(request.POST)
         if form.is_valid():
-            form.save()
+            cement = form.save()
+            messages.success(request, f"Sement turi qo'shildi: {cement.name}.")
+        else:
+            flash_errors(request, form)
         return redirect("cement_type")
 
 
 class CementTypeDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
         CementType.objects.filter(pk=pk).delete()
+        messages.success(request, "Sement turi o'chirildi.")
         return redirect("cement_type")
 
 
@@ -546,10 +586,8 @@ class StatisticsView(LoginRequiredMixin, View):
         except (ValueError, TypeError):
             selected_year = today.year
 
-        first_order = Order.objects.order_by("order_date").first()
-        # the tabs always began at 2024; they now also grow with the calendar instead of stopping at 2026
-        first_year = min(2024, first_order.order_date.year if first_order else today.year, selected_year)
-        years = list(range(first_year, max(today.year, selected_year) + 1))
+        first_year = Order.objects.order_by("order_date").values_list("order_date__year", flat=True).first()
+        years = year_choices(selected_year, first_year)
 
         orders = Order.objects.filter(order_date__year=selected_year)
 

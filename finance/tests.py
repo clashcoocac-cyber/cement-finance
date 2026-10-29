@@ -295,10 +295,134 @@ class PolishTests(LedgerTestCase):
         self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}\s*<span")           # the old yyyy-mm-dd + time layout
         self.assertIn("5 000 000&nbsp;so'm", html)
         self.assertNotIn('type="date"', html)
-        self.assertIn('<label class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>', html)
+        self.assertIn('class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>', html)
 
     def test_cement_type_month_filter_is_an_uzbek_select(self):
         html = self.client.get(reverse("cement_type") + "?month=2026-10").content.decode()
         self.assertIn('<select onchange="setFilter()" name="month" id="filterMonth" data-selected="2026-10"', html)
         self.assertNotIn('type="month"', html)
         self.assertIn("'Oktabr'", html)
+
+
+class CritiqueFixTests(LedgerTestCase):
+    """Fixes that came out of the design critique."""
+
+    def page(self, name, *args):
+        return self.client.get(reverse(name, args=args)).content.decode()
+
+    # --- the person is told what happened -------------------------------------------------------------------
+    def test_saving_an_order_says_so_with_the_customer_and_the_amounts(self):
+        response = self.new_order()
+        page = self.client.get(response["Location"]).content.decode()
+        self.assertIn('role="alert"', page)
+        self.assertIn("Buyurtma saqlandi: Ali", page)
+        self.assertIn("qolgan qarz 750", page)
+
+    def test_saving_a_payment_reports_the_customers_new_debt(self):
+        self.pay("300")
+        page = self.page("debts")
+        self.assertIn("To&#x27;lov saqlandi: Ali, 300", page)
+        self.assertIn("joriy qarzi: 700", page)
+
+    def test_cash_given_out_is_worded_differently_from_a_payment(self):
+        self.pay("-400")
+        page = self.page("debts")
+        self.assertIn("Mijozga berilgan pul saqlandi: Ali, 400", page)
+        self.assertIn("mijozga berilgan pul</span>", page)       # and the history row says so too
+        self.assertIn("text-red-700", page)
+
+    def test_deleting_says_so(self):
+        self.pay("300")
+        payment = PaymentHistory.objects.get()
+        self.client.post(reverse("payment_delete", args=[payment.pk]))
+        self.assertIn("o&#x27;chirildi", self.page("debts"))
+
+    def test_the_delete_confirmation_names_the_customer_amount_and_date(self):
+        self.pay("5000")
+        page = self.page("debts")
+        self.assertIn("Ali: 5 000 so'm", page)
+        self.assertIn("to'lovi o'chirilsinmi?", page)
+
+    # --- customers reach the scripts as data, never pasted into a JS string ------------------------------------
+    def test_a_customer_name_with_quotes_backslashes_and_markup_cannot_break_the_page_script(self):
+        import json
+        import re
+        nasty = 'A\\B"\'</script><b>&'
+        Customer.objects.create(name=nasty, phone="9", address="z", default_debt=0, total_debt=1234)
+        for name in ("dashboard", "debts", "customer"):
+            html = self.page(name)
+            match = re.search(r'<script id="clients-data" type="application/json">(.*?)</script>', html, re.S)
+            self.assertIsNotNone(match, name)
+            data = json.loads(match.group(1))
+            self.assertIn(nasty, [c["name"] for c in data], name)
+            self.assertNotIn("</script><b>", match.group(1))
+        debts = json.loads(re.search(r'id="clients-data" type="application/json">(.*?)</script>', self.page("debts"), re.S).group(1))
+        self.assertEqual({c["name"]: c["debt"] for c in debts}[nasty], 1234)
+
+    def test_debt_page_shows_the_balance_hint_grouping_and_year_tabs_that_follow_the_calendar(self):
+        import datetime
+        page = self.page("debts")
+        self.assertIn('oninput="groupAmount(this)"', page)
+        self.assertIn("Manfiy summa", page)
+        self.assertIn('id="clientDebtInfo"', page)
+        self.assertIn(f"?year={datetime.date.today().year}", page)
+        self.assertNotIn("Bobur Hamroev", page)                   # the dead placeholder text is gone
+
+    # --- one visual dialect -----------------------------------------------------------------------------------
+    def test_no_page_uses_the_undefined_glass_card_or_the_hover_lift_on_forms(self):
+        import re
+        self.new_order()
+        order = Order.objects.get()
+        self.pay("10")
+        payment = PaymentHistory.objects.get()
+        urls = [reverse(n) for n in ("dashboard", "customer", "debts", "cement_type", "stats")]
+        urls += [reverse("order_edit", args=[order.pk]), reverse("payment_edit", args=[payment.pk])]
+        for url in urls:
+            html = self.client.get(url).content.decode()
+            classes = " ".join(re.findall(r'class="([^"]*)"', html))
+            self.assertNotIn("glass-card", classes, url)
+            self.assertNotIn("card-hover", classes, url)
+            self.assertNotIn("from-green-100", classes, url)
+
+    def test_money_columns_are_right_aligned_tabular_numerals(self):
+        self.new_order()
+        html = self.client.get(reverse("dashboard") + "?date_from=2000-01-01&date_to=2999-12-31").content.decode()
+        self.assertGreaterEqual(html.count("text-right tabular-nums"), 6)
+
+    # --- accessibility ---------------------------------------------------------------------------------------
+    def test_every_label_points_at_a_real_field_and_no_id_is_used_twice(self):
+        import re
+        from collections import Counter
+        self.new_order()
+        order = Order.objects.get()
+        self.pay("10")
+        payment = PaymentHistory.objects.get()
+        urls = [reverse(n) for n in ("dashboard", "customer", "debts", "cement_type", "stats")]
+        urls += [reverse("order_edit", args=[order.pk]), reverse("payment_edit", args=[payment.pk])]
+        for url in urls:
+            html = self.client.get(url).content.decode()
+            ids = Counter(re.findall(r'\sid="([^"]+)"', html))
+            self.assertEqual([i for i, n in ids.items() if n > 1], [], f"duplicate ids on {url}")
+            for target in re.findall(r'<label[^>]*\sfor="([^"]+)"', html):
+                self.assertIn(target, ids, f"label for={target} has no field on {url}")
+            self.assertGreaterEqual(len(re.findall(r'<label[^>]*\sfor="', html)), 1 if "<label" in html else 0)
+
+    def test_login_and_edit_pages_use_the_same_font_as_the_rest(self):
+        login = Client().get(reverse("login")).content.decode()
+        self.assertIn("Onest", login)
+        self.assertNotIn("Mona", login)
+        self.new_order()
+        order = Order.objects.get()
+        self.assertNotIn("Mona", self.client.get(reverse("order_edit", args=[order.pk])).content.decode())
+
+    def test_buttons_are_real_buttons_and_nothing_uses_the_invalid_none_type(self):
+        self.new_order()
+        order = Order.objects.get()
+        for html in (self.page("customer"), self.client.get(reverse("order_edit", args=[order.pk])).content.decode()):
+            self.assertNotIn('type="none"', html)
+        self.assertIn('<button type="button" onclick="deleteCustomer(this)"', self.page("customer"))
+
+    def test_clickable_rows_get_keyboard_support_from_the_base_template(self):
+        html = self.page("dashboard")
+        self.assertIn("tr[onclick], td[onclick]", html)
+        self.assertIn("e.key === 'Enter'", html)
