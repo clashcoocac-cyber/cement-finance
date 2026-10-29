@@ -276,33 +276,29 @@ class PolishTests(LedgerTestCase):
         self.assertEqual(format_currency(40000000), "40 000 000")
         self.assertEqual(format_currency(-1500), "-1 500")
 
-    def test_order_list_shows_dd_mm_yyyy_on_one_line_and_uses_the_uzbek_date_picker(self):
+    def test_order_list_keeps_the_original_two_line_date_and_native_date_inputs(self):
         self.new_order()
         html = self.client.get(reverse("dashboard") + "?date_from=2000-01-01&date_to=2999-12-31").content.decode()
         order = Order.objects.get()
-        self.assertIn(order.order_date.strftime("%d.%m.%Y"), html)
-        self.assertNotIn('type="date"', html)
-        self.assertEqual(html.count("data-uz-date"), 2 + html.count("input[data-uz-date]"))
+        self.assertIn(order.order_date.strftime("%d-%m") + "<br>" + order.order_date.strftime("%Y"), html)
+        self.assertEqual(html.count('type="date"'), 2)
+        self.assertNotIn("flatpickr", html)
         # the filter script reads these ids, so they must stay on the real inputs
         self.assertIn('id="filterDateFrom"', html)
         self.assertIn('id="filterDateTo"', html)
 
-    def test_debt_page_dates_and_amounts(self):
+    def test_debt_page_dates_and_amounts_keep_the_original_format(self):
         self.pay("5000000")
         html = self.client.get(reverse("debts")).content.decode()
         payment = PaymentHistory.objects.get()
-        self.assertIn(payment.paid_at.astimezone().strftime("%d.%m.%Y"), html)
-        self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}\s*<span")           # the old yyyy-mm-dd + time layout
-        self.assertIn("5 000 000&nbsp;so'm", html)
-        self.assertNotIn('type="date"', html)
-        self.assertIn('class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>', html)
+        self.assertIn(payment.paid_at.astimezone().strftime("%Y-%m-%d"), html)
+        self.assertIn("5\u00a0000\u00a0000&nbsp;so'm", html)
+        self.assertIn('type="date"', html)
 
-    def test_cement_type_month_filter_is_an_uzbek_select(self):
+    def test_cement_type_month_filter_is_the_original_month_input(self):
         html = self.client.get(reverse("cement_type") + "?month=2026-10").content.decode()
-        self.assertIn('<select onchange="setFilter()" name="month" id="filterMonth" data-selected="2026-10"', html)
-        self.assertNotIn('type="month"', html)
-        self.assertIn("'Oktabr'", html)
-
+        self.assertIn('type="month" name="month" id="filterMonth"', html)
+        self.assertIn('value="2026-10"', html)
 
 class CritiqueFixTests(LedgerTestCase):
     """Fixes that came out of the design critique."""

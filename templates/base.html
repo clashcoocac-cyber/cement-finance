@@ -25,8 +25,6 @@
                 box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             }
         </style>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"
-              integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt" crossorigin="anonymous">
         <script>
             // Customer names reach the page as data (JSON); anything put into innerHTML goes through esc() first.
             function esc(value) {
@@ -169,32 +167,6 @@
         {% endblock %}
     </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"
-        integrity="sha384-5JqMv4L/Xa0hfvtF06qboNdhvuYXUku9ZrhZh3bSk8VXF0A/RuSLHpLsSV9Zqhl6" crossorigin="anonymous"></script>
-<script>
-    // Date pickers speak Uzbek and always show dd.mm.yyyy (the browser's own date input follows the browser's
-    // locale and can show day and month the other way round). The real <input> keeps YYYY-MM-DD and its id, so the
-    // filter scripts that read it (and the URL parameters) are unchanged; flatpickr fires `change` on it.
-    flatpickr.localize({
-        firstDayOfWeek: 1,
-        weekdays: {
-            shorthand: ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Juma', 'Shan'],
-            longhand: ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'],
-        },
-        months: {
-            shorthand: ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'],
-            longhand: ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'],
-        },
-    });
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('input[data-uz-date]').forEach(function (input) {
-            const picker = flatpickr(input, { dateFormat: 'Y-m-d', altInput: true, altFormat: 'd.m.Y', disableMobile: true });
-            picker.altInput.className = input.className;   // looks like the other fields
-            const label = input.id && document.querySelector('label[for="' + input.id + '"]');
-            picker.altInput.setAttribute('aria-label', label ? label.textContent.trim() : 'Sana');
-        });
-    });
-</script>
 <script>
     // Anything that opens something when clicked (table rows, cards) can also be reached with Tab and opened with
     // Enter or Space, and is announced as a button.

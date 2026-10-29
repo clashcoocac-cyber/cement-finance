@@ -104,11 +104,11 @@
                     </div>
                     <div>
                         <label for="filterDateFrom" class="block text-sm font-medium text-gray-700 mb-1">Sana (dan)</label>
-                        <input type="text" data-uz-date onchange="setFilter()" value="{% if request.GET.date_from %}{{ request.GET.date_from }}{% elif not customer %}{{ today }}{% endif %}" name="date_from" id="filterDateFrom" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium">
+                        <input type="date" onchange="setFilter()" value="{% if request.GET.date_from %}{{ request.GET.date_from }}{% elif not customer %}{{ today }}{% endif %}" name="date_from" id="filterDateFrom" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium">
                     </div>
                     <div>
                         <label for="filterDateTo" class="block text-sm font-medium text-gray-700 mb-1">Sana (gacha)</label>
-                        <input type="text" data-uz-date onchange="setFilter()" value="{% if request.GET.date_to %}{{ request.GET.date_to }}{% elif not customer %}{{ today }}{% endif %}" name="date_to" id="filterDateTo" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium">
+                        <input type="date" onchange="setFilter()" value="{% if request.GET.date_to %}{{ request.GET.date_to }}{% elif not customer %}{{ today }}{% endif %}" name="date_to" id="filterDateTo" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition-all duration-300 font-medium">
                     </div>
                 </div>
             </div>
@@ -162,7 +162,7 @@
                                 <tr {% if order.type == 'order' %}onclick="window.location.href = `{% url 'order_edit' order.id %}`"{% endif %} 
                                     title="{% if order.type == 'order' %}Tahrirlash uchun bosing{% endif %}" class="hover:bg-gray-100 cursor-pointer {% if order.type == 'payment' %}bg-green-50 hover:bg-green-100{% endif %}">
                                     <td class="px-4 py-3 text-gray-700 whitespace-nowrap" style="font-size: 0.8rem">
-                                        {{ order.order_date|date:"d.m.Y" }}
+                                        {{ order.order_date|date:"d-m" }}<br>{{ order.order_date|date:"Y" }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ order.customer.name }}
