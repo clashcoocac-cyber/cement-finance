@@ -6,7 +6,7 @@
             <!-- Add New Order -->
             <div class="modern-card rounded-2xl p-6 mb-8">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Yangi Buyurtma Qo'shish</h2>
-                <form action="{% url 'dashboard' %}" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <form id="orderForm" action="{% url 'dashboard' %}" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8" novalidate>
                     {% csrf_token %}
                     <!-- Left side - Input fields -->
                     <div class="lg:col-span-2">
@@ -14,41 +14,49 @@
                             <div>
                                 <label for="clientSearch" class="block text-sm font-medium text-gray-800 mb-3">Mijoz</label>
                                 <div class="relative">
-                                    <input type="text" required autofocus id="clientSearch" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm" placeholder="Mijoz qidirish..." oninput="searchClients()" onfocus="showClientDropdown()" onblur="hideClientDropdown()">
+                                    <input type="text" required autofocus autocomplete="off" id="clientSearch" value="{{ submitted_customer.name|default:'' }}" aria-invalid="{% if errors.customer_id %}true{% else %}false{% endif %}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm" placeholder="Mijoz qidirish..." oninput="searchClients()" onfocus="showClientDropdown()" onblur="hideClientDropdown()">
                                     <div id="clientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
                                         <!-- Client options will be populated here -->
                                     </div>
                                 </div>
-                                <input type="hidden" name="customer_id" id="selectedClientId" value="">
+                                <input type="hidden" name="customer_id" id="selectedClientId" value="{{ submitted_customer.id|default:'' }}">
+                                <p id="clientDebtInfo" class="mt-2 text-sm text-gray-700 hidden" role="status" aria-live="polite"></p>
+                                <p id="clientError" class="mt-1 text-xs text-red-700{% if not errors.customer_id %} hidden{% endif %}" role="alert">{% if errors.customer_id %}{{ errors.customer_id.0 }}{% endif %}</p>
                             </div>
                             <div>
                                 <label for="cementSelect" class="block text-sm font-medium text-gray-800 mb-3">Sement Turi</label>
-                                <select id="cementSelect" name="cement_type_id" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm">
+                                <select id="cementSelect" name="cement_type_id" required aria-invalid="{% if errors.cement_type_id %}true{% else %}false{% endif %}" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm">
                                     <option value="">Sement turini tanlang</option>
                                     {% for cement_type in cement_types %}
-                                        <option value="{{ cement_type.id }}">{{ cement_type.name }}</option>
+                                        <option value="{{ cement_type.id }}"{% if submitted.cement_type_id == cement_type.id|stringformat:"s" %} selected{% endif %}>{{ cement_type.name }}</option>
                                     {% endfor %}
                                 </select>
+                                {% if errors.cement_type_id %}<p class="mt-1 text-xs text-red-700" role="alert">{{ errors.cement_type_id.0 }}</p>{% endif %}
                             </div>
                             <div>
                                 <label for="quantity" class="block text-sm font-medium text-gray-800 mb-3">Miqdori (kg)</label>
-                                <input onchange="calculateTotal()" name="quantity" required type="number" id="quantity" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
+                                <input type="text" inputmode="numeric" autocomplete="off" oninput="groupAmount(this); calculateTotal()" value="{{ submitted.quantity|default:'' }}" aria-invalid="{% if errors.quantity %}true{% else %}false{% endif %}" name="quantity" required id="quantity" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
+                                {% if errors.quantity %}<p class="mt-1 text-xs text-red-700" role="alert">{{ errors.quantity.0 }}</p>{% endif %}
                             </div>
                             <div>
                                 <label for="price" class="block text-sm font-medium text-gray-800 mb-3">Narxi (so'm/kg)</label>
-                                <input onchange="calculateTotal()" name="price_per_kg" required type="number" id="price" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
+                                <input type="text" inputmode="numeric" autocomplete="off" oninput="groupAmount(this); calculateTotal()" value="{{ submitted.price_per_kg|default:'' }}" aria-invalid="{% if errors.price_per_kg %}true{% else %}false{% endif %}" name="price_per_kg" required id="price" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
+                                {% if errors.price_per_kg %}<p class="mt-1 text-xs text-red-700" role="alert">{{ errors.price_per_kg.0 }}</p>{% endif %}
                             </div>
                             <div>
                                 <label for="transportCost" class="block text-sm font-medium text-gray-800 mb-3">Yo'l Xarajati</label>
-                                <input type="number" id="transportCost" name="road_cost" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
+                                <input type="text" inputmode="numeric" autocomplete="off" oninput="groupAmount(this); calculateTotal()" value="{{ submitted.road_cost|default:'' }}" aria-invalid="{% if errors.road_cost %}true{% else %}false{% endif %}" id="transportCost" name="road_cost" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
+                                {% if errors.road_cost %}<p class="mt-1 text-xs text-red-700" role="alert">{{ errors.road_cost.0 }}</p>{% endif %}
                             </div>
                             <div>
                                 <label for="paidAmount" class="block text-sm font-medium text-gray-800 mb-3">Olingan Pul</label>
-                                <input type="number" id="paidAmount" name="paid_amount" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
+                                <input type="text" inputmode="numeric" autocomplete="off" oninput="groupAmount(this); calculateTotal()" value="{{ submitted.paid_amount|default:'' }}" aria-invalid="{% if errors.paid_amount %}true{% else %}false{% endif %}" id="paidAmount" name="paid_amount" class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="0" oninput="calculateTotal()">
+                                {% if errors.paid_amount %}<p class="mt-1 text-xs text-red-700" role="alert">{{ errors.paid_amount.0 }}</p>{% endif %}
                             </div>
                             <div>
                                 <label for="carNumber" class="block text-sm font-medium text-gray-800 mb-3">Mashina Raqami</label>
-                                <input type="text" id="carNumber" name="car_number" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="01A123BC">
+                                <input value="{{ submitted.car_number|default:'' }}" autocomplete="off" aria-invalid="{% if errors.car_number %}true{% else %}false{% endif %}" type="text" id="carNumber" name="car_number" required class="text-sm py-3 w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 font-medium shadow-sm" placeholder="01A123BC">
+                                {% if errors.car_number %}<p class="mt-1 text-xs text-red-700" role="alert">{{ errors.car_number.0 }}</p>{% endif %}
                             </div>
                         </div>
                     </div>
@@ -249,10 +257,11 @@
     <script>
         // Calculate totals
         function calculateTotal() {
-            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
-            const price = parseFloat(document.getElementById('price').value) || 0;
-            const transportCost = parseFloat(document.getElementById('transportCost').value) || 0;
-            const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+            const amountOf = id => parseInt(document.getElementById(id).value.replace(/[^\d-]/g, ''), 10) || 0;
+            const quantity = amountOf('quantity');
+            const price = amountOf('price');
+            const transportCost = amountOf('transportCost');
+            const paidAmount = amountOf('paidAmount');
             
             const totalPrice = quantity * price;
             const grandTotal = totalPrice - transportCost; // Transport cost is subtracted
@@ -317,7 +326,26 @@
             document.getElementById('clientSearch').value = client.name;
             document.getElementById('selectedClientId').value = client.id;
             document.getElementById('clientDropdown').classList.add('hidden');
+            document.getElementById('clientSearch').setAttribute('aria-invalid', 'false');
+            document.getElementById('clientError').classList.add('hidden');
+            showClientDebt(client);
         }
+
+        function showClientDebt(client) {
+            const info = document.getElementById('clientDebtInfo');
+            const debt = Math.round(Number(client.debt) || 0);
+            info.textContent = client.name + ' ning joriy qarzi: ' + String(debt).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0') + " so'm";
+            info.classList.remove('hidden');
+        }
+
+        // a rejected order comes back with its values: bring the totals and the customer's debt back too
+        document.addEventListener('DOMContentLoaded', function () {
+            calculateTotal();
+            const chosen = document.getElementById('selectedClientId').value;
+            const client = clients.find(c => c.id === chosen);
+            if (client) showClientDebt(client);
+            guardCustomerSelection('orderForm', 'clientSearch', 'selectedClientId', 'clientError');
+        });
 
         function showClientDropdown() {
             if (document.getElementById('clientSearch').value.length > 0) {

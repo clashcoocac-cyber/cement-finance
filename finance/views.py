@@ -198,7 +198,8 @@ class OrderView(LoginRequiredMixin, View):
 
         return combined_data
 
-    def get(self, request):
+    def get(self, request, submitted=None, errors=None):
+        """`submitted`/`errors`: a rejected new-order form, shown again with what was typed and what is wrong."""
         query_params = request.GET.copy()
         if not query_params.get("customer_id"):
             query_params["date_from"] = query_params.get("date_from") or date.today()
@@ -300,6 +301,12 @@ class OrderView(LoginRequiredMixin, View):
             "total_debt": total_debt,
             "page": "dashboard",
             "customer": customer,
+            "submitted": submitted,
+            "errors": errors,
+            "submitted_customer": (
+                Customer.objects.filter(pk=submitted.get("customer_id")).first()
+                if submitted and str(submitted.get("customer_id", "")).isdigit() else None
+            ),
         }
 
         return render(request, self.template_name, context=context)
@@ -313,9 +320,14 @@ class OrderView(LoginRequiredMixin, View):
                 f"Buyurtma saqlandi: {order.customer.name}, jami {money(order.total_sum)} so'm, "
                 f"qolgan qarz {money(order.remaining_debt)} so'm.",
             )
-        else:
-            flash_errors(request, form)
-        return redirect("dashboard")
+            return redirect("dashboard")
+
+        # Not saved: show the same page again with everything the clerk typed and a note on each wrong field,
+        # instead of redirecting to an empty form.
+        messages.error(request, "Buyurtma saqlanmadi. Qizil belgilangan maydonlarni tuzating.")
+        for error in form.non_field_errors():
+            messages.error(request, error)
+        return self.get(request, submitted=request.POST, errors=form.errors)
 
 
 class OrderEditView(LoginRequiredMixin, View):

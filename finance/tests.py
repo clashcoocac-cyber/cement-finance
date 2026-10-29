@@ -473,3 +473,57 @@ class RegressionFromTheReviewTests(LedgerTestCase):
         import pathlib
         for path in pathlib.Path("templates").glob("*.html"):
             self.assertNotIn("filterClientsList()", path.read_text(), path.name)
+
+
+class OrderEntryKeepsTheWorkTests(LedgerTestCase):
+    """A rejected new order comes back filled in, with the problem next to the field."""
+
+    def bad_order(self, **over):
+        data = {"customer_id": self.customer.pk, "cement_type_id": self.cement.pk, "quantity": "0",
+                "price_per_kg": "1 200", "road_cost": "", "paid_amount": "", "car_number": "77B777"}
+        data.update(over)
+        return self.client.post(reverse("dashboard"), data)
+
+    def test_a_rejected_order_is_shown_again_with_what_was_typed(self):
+        response = self.bad_order()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertContains(response, "Miqdor 0 dan katta")
+        self.assertContains(response, 'value="77B777"')
+        self.assertContains(response, 'value="1 200"')
+        self.assertContains(response, 'value="Ali"')
+        self.assertContains(response, f'value="{self.customer.pk}"')
+        self.assertContains(response, "Buyurtma saqlanmadi")
+
+    def test_a_missing_customer_is_reported_in_uzbek_next_to_the_customer_field(self):
+        response = self.bad_order(customer_id="", quantity="10")
+        self.assertContains(response, "Mijozni ro&#x27;yxatdan tanlang.")
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_grouped_amounts_and_empty_optional_money_fields_are_accepted(self):
+        self.new_order(quantity="30 000", price_per_kg="570", road_cost="", paid_amount="")
+        order = Order.objects.get()
+        self.assertEqual((order.quantity, order.price_per_kg, order.road_cost, order.paid_amount), (30000, 570, 0, 0))
+
+    def test_negative_road_cost_is_still_allowed(self):
+        self.new_order(road_cost="-500")
+        self.assertEqual(Order.objects.get().road_cost, -500)
+
+    def test_the_page_ships_the_shared_helpers_and_the_selection_guard(self):
+        html = self.client.get(reverse("dashboard")).content.decode()
+        for needle in ("function groupAmount(input)", "function enhanceCombobox(", "function guardCustomerSelection(",
+                       'id="orderForm"', 'oninput="groupAmount(this); calculateTotal()"', 'id="clientDebtInfo"'):
+            self.assertIn(needle, html)
+        self.assertNotIn('type="number"', html.split('id="orderForm"')[1].split("</form>")[0])
+
+    def test_the_debt_form_uses_the_shared_guard_and_has_one_groupamount(self):
+        html = self.client.get(reverse("debts")).content.decode()
+        self.assertEqual(html.count("function groupAmount"), 1)
+        self.assertIn("guardCustomerSelection('debtForm'", html)
+        self.assertIn('id="debtForm"', html)
+
+    def test_a_payment_without_a_chosen_customer_is_rejected_with_a_clear_message(self):
+        response = self.pay(100, customer_id="")
+        self.assertEqual(PaymentHistory.objects.count(), 0)
+        follow = self.client.get(reverse("debts"))
+        self.assertContains(follow, "Mijozni ro&#x27;yxatdan tanlang.")

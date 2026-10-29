@@ -20,16 +20,37 @@ def parse_money(text, allow_blank=False):
     return int(cleaned)
 
 
-class OrderForm(forms.ModelForm):    
-    customer_id = forms.IntegerField()
-    cement_type_id = forms.IntegerField()
+class OrderForm(forms.ModelForm):
+    customer_id = forms.IntegerField(error_messages={
+        'required': "Mijozni ro'yxatdan tanlang.", 'invalid': "Mijozni ro'yxatdan tanlang."})
+    cement_type_id = forms.IntegerField(error_messages={
+        'required': "Sement turini tanlang.", 'invalid': "Sement turini tanlang."})
+    # Amounts are typed with thousands separators ("1 500 000"); parse_money reads them. Road cost and the
+    # amount received may be left empty (0); road cost may be negative.
+    quantity = forms.CharField(error_messages={'required': "Miqdorni kiriting."})
+    price_per_kg = forms.CharField(error_messages={'required': "Narxni kiriting."})
+    road_cost = forms.CharField(required=False)
+    paid_amount = forms.CharField(required=False)
 
     class Meta:
         model = Order
         fields = ['customer_id', 'cement_type_id', 'quantity', 'price_per_kg', 'road_cost', 'paid_amount', 'car_number']
 
+    def clean_quantity(self):
+        return parse_money(self.cleaned_data['quantity'])
+
+    def clean_price_per_kg(self):
+        return parse_money(self.cleaned_data['price_per_kg'])
+
+    def clean_road_cost(self):
+        return parse_money(self.cleaned_data.get('road_cost'), allow_blank=True)
+
+    def clean_paid_amount(self):
+        return parse_money(self.cleaned_data.get('paid_amount'), allow_blank=True)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['car_number'].error_messages['required'] = "Mashina raqamini kiriting."
         # Set initial values for customer_id and cement_type_id if instance exists
         if self.instance and self.instance.pk:
             self.fields['customer_id'].initial = self.instance.customer.id if self.instance.customer else None
@@ -117,7 +138,8 @@ class CustomerForm(forms.ModelForm):
 
 
 class PaymentForm(forms.ModelForm):
-    customer_id = forms.IntegerField()
+    customer_id = forms.IntegerField(error_messages={
+        'required': "Mijozni ro'yxatdan tanlang.", 'invalid': "Mijozni ro'yxatdan tanlang."})
     payment_amount = forms.CharField()
     comment = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Izoh qoldiring...'}))
 
