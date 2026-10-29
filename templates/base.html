@@ -77,9 +77,31 @@
 </div>
 
 
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div role="alert" class="rounded-lg border px-4 py-3 text-sm {% if message.level_tag == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-700{% endif %}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% block content %}
         {% endblock %}
     </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    // Deleting is a POST (with the CSRF token), never a plain link, so a stray visit or a foreign page cannot trigger it.
+    function postTo(url) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        const token = document.createElement('input');
+        token.type = 'hidden';
+        token.name = 'csrfmiddlewaretoken';
+        token.value = '{{ csrf_token }}';
+        form.appendChild(token);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
 
 </html>

@@ -1,5 +1,23 @@
+import re
+
 from django import forms
-from finance.models import Customer, CementType, Order, PaymentHistory
+from django.db import transaction
+
+from finance.models import Customer, CementType, Order, PaymentHistory, change_customer_debt
+
+
+def parse_money(text, allow_blank=False):
+    """Whole so'm typed by a person: spaces, commas and dots are thousands separators ('1 500 000', '1,500,000',
+    '1.500.000'); a leading minus is allowed (money paid out to a customer is recorded as a negative payment).
+    Anything else (letters, '12abc') is refused instead of crashing the page or becoming a different amount."""
+    cleaned = re.sub(r'[\s,.]', '', text or '')
+    if not cleaned:
+        if allow_blank:
+            return 0
+        raise forms.ValidationError("Summani kiriting.")
+    if not re.fullmatch(r'-?\d{1,15}', cleaned):
+        raise forms.ValidationError("Summani faqat raqamlarda kiriting (masalan 1 500 000).")
+    return int(cleaned)
 
 
 class OrderForm(forms.ModelForm):    
@@ -36,6 +54,13 @@ class OrderForm(forms.ModelForm):
             except CementType.DoesNotExist:
                 raise forms.ValidationError("Tanlangan sement turi mavjud emas.")
         
+        # road_cost may be negative (a surcharge/credit the business already uses); the rest cannot
+        if cleaned_data.get('quantity') is not None and cleaned_data['quantity'] <= 0:
+            self.add_error('quantity', "Miqdor 0 dan katta bo'lishi kerak.")
+        for name in ('price_per_kg', 'paid_amount'):
+            if cleaned_data.get(name) is not None and cleaned_data[name] < 0:
+                self.add_error(name, "Qiymat manfiy bo'lishi mumkin emas.")
+
         return cleaned_data
 
     def save(self, commit=True):
@@ -44,36 +69,21 @@ class OrderForm(forms.ModelForm):
         order.cement_type = CementType.objects.get(id=self.cleaned_data['cement_type_id'])
         
         if commit:
-            # If this is an update, we need to handle the debt calculation properly
-            if self.instance.pk:  # This is an update
-                old_order = Order.objects.get(pk=self.instance.pk)
-                old_remaining_debt = old_order.remaining_debt
-                old_customer = old_order.customer
-                
-                # Save the updated order
-                order.save()
-                new_remaining_debt = order.remaining_debt
-                
-                # If customer changed, we need to update both customers' debts
-                if old_customer != order.customer:
-                    # Remove debt from old customer
-                    old_customer.total_debt -= old_remaining_debt
-                    old_customer.save()
-                    
-                    # Add debt to new customer
-                    order.customer.total_debt += new_remaining_debt
-                    order.customer.save()
-                else:
-                    # Same customer, just update the debt difference
-                    debt_difference = new_remaining_debt - old_remaining_debt
-                    order.customer.total_debt += debt_difference
-                    order.customer.save()
-            else:  # This is a new order
-                order.save()
-                customer = order.customer
-                customer.total_debt += order.remaining_debt
-                customer.save()
-        
+            with transaction.atomic():
+                if self.instance.pk:  # update: move the difference between the old and the new remaining debt
+                    old_order = Order.objects.get(pk=self.instance.pk)
+                    old_remaining_debt = old_order.remaining_debt
+                    old_customer_id = old_order.customer_id   # None for an order whose customer was deleted
+                    order.save()
+                    if old_customer_id == order.customer_id:
+                        change_customer_debt(order.customer_id, order.remaining_debt - old_remaining_debt)
+                    else:
+                        change_customer_debt(old_customer_id, -old_remaining_debt)
+                        change_customer_debt(order.customer_id, order.remaining_debt)
+                else:  # new order
+                    order.save()
+                    change_customer_debt(order.customer_id, order.remaining_debt)
+
         return order
 
 
@@ -84,9 +94,12 @@ class CustomerForm(forms.ModelForm):
         model = Customer
         fields = ['name', 'phone', 'address', 'debt']
 
+    def clean_debt(self):
+        return parse_money(self.cleaned_data.get('debt'), allow_blank=True)
+
     def save(self, commit=True, update=False):
         customer = super().save(commit=False)
-        debt = self.cleaned_data.get('debt').replace(',', '').replace(' ', '').replace('.', '') or 0
+        debt = self.cleaned_data.get('debt') or 0
 
         if commit:
             if update:
@@ -112,15 +125,26 @@ class PaymentForm(forms.ModelForm):
         model = PaymentHistory
         fields = ['customer_id', 'payment_amount', 'payment_type', 'comment']
 
+    def clean_payment_amount(self):
+        amount = parse_money(self.cleaned_data['payment_amount'])
+        if amount == 0:
+            raise forms.ValidationError("To'lov summasi 0 bo'lishi mumkin emas.")
+        return amount
+
+    def clean_customer_id(self):
+        customer_id = self.cleaned_data['customer_id']
+        if not Customer.objects.filter(id=customer_id).exists():
+            raise forms.ValidationError("Tanlangan mijoz mavjud emas.")
+        return customer_id
+
     def save(self, commit=True):
         payment_history = super().save(commit=False)
         payment_history.customer = Customer.objects.get(id=self.cleaned_data['customer_id'])
         if commit:
-            payment_history.amount = float(self.cleaned_data['payment_amount'].replace(',', '').replace(' ', '').replace('.', ''))
-            payment_history.save()
-            customer = payment_history.customer
-            customer.total_debt -= payment_history.amount
-            customer.save()
+            with transaction.atomic():
+                payment_history.amount = self.cleaned_data['payment_amount']
+                payment_history.save()
+                change_customer_debt(payment_history.customer_id, -payment_history.amount)
         return payment_history
 
 
@@ -138,21 +162,22 @@ class PaymentEditForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['payment_amount'].initial = str(self.instance.amount)
 
+    def clean_payment_amount(self):
+        amount = parse_money(self.cleaned_data['payment_amount'])
+        if amount == 0:
+            raise forms.ValidationError("To'lov summasi 0 bo'lishi mumkin emas.")
+        return amount
+
     def save(self, commit=True):
         payment_history = super().save(commit=False)
         if commit:
-            # Calculate the difference in amount to update customer debt
-            old_amount = float(self.instance.amount)
-            new_amount = float(self.cleaned_data['payment_amount'].replace(',', '').replace(' ', '').replace('.', ''))
-            payment_history.amount = new_amount
-            
-            # Update customer debt based on the difference
-            amount_difference = new_amount - old_amount
-            customer = payment_history.customer
-            customer.total_debt -= amount_difference
-            customer.save()
-            
-            payment_history.save()
+            with transaction.atomic():
+                old_amount = PaymentHistory.objects.get(pk=self.instance.pk).amount
+                new_amount = self.cleaned_data['payment_amount']
+                payment_history.amount = new_amount
+                payment_history.save()
+                # the customer's debt moves by the difference
+                change_customer_debt(payment_history.customer_id, old_amount - new_amount)
         return payment_history
 
 

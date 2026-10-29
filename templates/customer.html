@@ -153,7 +153,9 @@
                 if (response.ok) {
                     window.location.reload();
                 } else {
-                    alert("Mijozni o'chirishda xatolik yuz berdi.");
+                    // the server says why (for example: the customer still has orders, payments or a debt)
+                    response.json().then(data => alert(data.error || "Mijozni o'chirishda xatolik yuz berdi."))
+                        .catch(() => alert("Mijozni o'chirishda xatolik yuz berdi."));
                 }
             })
         }

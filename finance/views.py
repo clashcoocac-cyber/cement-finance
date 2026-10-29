@@ -1,9 +1,12 @@
+import hashlib
 from datetime import date
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView as LView
-from django.db import models
-from django.http import HttpResponse
+from django.core.cache import cache
+from django.db import models, transaction
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import make_naive
 from django.views import View
@@ -16,12 +19,54 @@ from finance.forms import (
     PaymentEditForm,
     PaymentForm,
 )
-from finance.models import CementType, Customer, Order, PaymentHistory
+from finance.models import CementType, Customer, Order, PaymentHistory, change_customer_debt
+
+
+MAX_FAILED_LOGINS = 5          # per username from one address
+MAX_FAILED_LOGINS_PER_IP = 30   # per address, across usernames
+LOCKOUT_SECONDS = 15 * 60
+
+
+def _client_ip(request):
+    """nginx sets X-Real-IP; the socket peer is nginx itself."""
+    return request.META.get("HTTP_X_REAL_IP") or request.META.get("REMOTE_ADDR", "")
+
+
+def _count_failure(key):
+    cache.add(key, 0, LOCKOUT_SECONDS)
+    try:
+        cache.incr(key)
+    except ValueError:  # expired between add() and incr()
+        cache.set(key, 1, LOCKOUT_SECONDS)
 
 
 class LoginView(LView):
+    """Sign-in with a brake on password guessing: 5 wrong tries per username (30 per address), then 15 minutes."""
     template_name = "login.html"
     redirect_authenticated_user = True
+
+    def _throttle_keys(self):
+        ip = _client_ip(self.request)
+        username = (self.request.POST.get("username") or "").strip().lower()[:150]
+        digest = hashlib.sha256(username.encode()).hexdigest()[:32]
+        return f"login-fail:{ip}:{digest}", f"login-fail-ip:{ip}"
+
+    def post(self, request, *args, **kwargs):
+        user_key, ip_key = self._throttle_keys()
+        if cache.get(user_key, 0) >= MAX_FAILED_LOGINS or cache.get(ip_key, 0) >= MAX_FAILED_LOGINS_PER_IP:
+            form = self.get_form()
+            form.add_error(None, "Juda ko'p noto'g'ri urinish. 15 daqiqadan keyin qayta urinib ko'ring.")
+            return self.render_to_response(self.get_context_data(form=form), status=429)
+        return super().post(request, *args, **kwargs)
+
+    def form_invalid(self, form):
+        for key in self._throttle_keys():
+            _count_failure(key)
+        return super().form_invalid(form)
+
+    def form_valid(self, form):
+        cache.delete(self._throttle_keys()[0])
+        return super().form_valid(form)
 
 
 class LogoutView(View):
@@ -30,6 +75,13 @@ class LogoutView(View):
 
         logout(request)
         return redirect("login")
+
+
+def flash_errors(request, form):
+    """Tell the person why a form was not saved (the pages used to drop invalid input without a word)."""
+    for errors in form.errors.values():
+        for error in errors:
+            messages.error(request, error)
 
 
 class OrderView(LoginRequiredMixin, View):
@@ -232,6 +284,8 @@ class OrderView(LoginRequiredMixin, View):
         form = OrderForm(request.POST)
         if form.is_valid():
             form.save()
+        else:
+            flash_errors(request, form)
         return redirect("dashboard")
 
 
@@ -260,16 +314,18 @@ class OrderEditView(LoginRequiredMixin, View):
             form.save()
             return redirect("dashboard")
 
+        flash_errors(request, form)
         return render(request, self.template_name, self.get_context(form, order))
 
 
 class OrderDeleteView(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        order = get_object_or_404(Order, id=pk)
-        customer = order.customer
-        customer.total_debt -= order.remaining_debt
-        customer.save()
-        order.delete()
+    """POST only: a link that deletes on GET can be triggered by any page the signed-in person visits."""
+
+    def post(self, request, pk):
+        with transaction.atomic():
+            order = get_object_or_404(Order, id=pk)
+            change_customer_debt(order.customer_id, -order.remaining_debt)   # no-op when the customer is gone
+            order.delete()
         return redirect("dashboard")
 
 
@@ -301,6 +357,8 @@ class CustomerView(LoginRequiredMixin, View):
         form = CustomerForm(request.POST)
         if form.is_valid():
             form.save()
+        else:
+            flash_errors(request, form)
         return redirect("customer")
 
     def put(self, request):
@@ -309,12 +367,22 @@ class CustomerView(LoginRequiredMixin, View):
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
             form.save(update=True)
+        else:
+            flash_errors(request, form)
         return redirect("customer")
 
 
 class CustomerDeleteView(LoginRequiredMixin, View):
     def delete(self, request, pk):
-        Customer.objects.filter(id=pk).delete()
+        customer = get_object_or_404(Customer, id=pk)
+        # Deleting a customer wipes their payment history and leaves their orders without an owner,
+        # and the money they still owe disappears from the totals. Only a customer with no trace can go.
+        if customer.orders.exists() or customer.payment_histories.exists() or customer.total_debt:
+            return JsonResponse(
+                {"error": "Bu mijozda buyurtma, to'lov yoki qarz bor, shuning uchun o'chirib bo'lmaydi."},
+                status=409,
+            )
+        customer.delete()
         return HttpResponse(status=204)
 
 
@@ -365,6 +433,8 @@ class DebtView(LoginRequiredMixin, View):
         form = PaymentForm(request.POST)
         if form.is_valid():
             form.save()
+        else:
+            flash_errors(request, form)
         return redirect("debts")
 
 
@@ -392,16 +462,18 @@ class PaymentEditView(LoginRequiredMixin, View):
             form.save()
             return redirect("debts")
 
+        flash_errors(request, form)
         return render(request, self.template_name, self.get_context(form, payment))
 
 
 class PaymentDeleteView(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        payment = get_object_or_404(PaymentHistory, id=pk)
-        customer = payment.customer
-        customer.total_debt += payment.amount
-        customer.save()
-        payment.delete()
+    """POST only (see OrderDeleteView)."""
+
+    def post(self, request, pk):
+        with transaction.atomic():
+            payment = get_object_or_404(PaymentHistory, id=pk)
+            change_customer_debt(payment.customer_id, payment.amount)
+            payment.delete()
         return redirect("debts")
 
 

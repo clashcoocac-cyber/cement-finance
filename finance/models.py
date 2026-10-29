@@ -1,4 +1,19 @@
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.db import models
+from django.db.models import F
+
+
+def change_customer_debt(customer_id, delta):
+    """Add `delta` (so'm, may be negative) to a customer's total_debt in one atomic UPDATE.
+
+    The old read-modify-write (`customer.total_debt += x; customer.save()`) lost updates when two
+    people worked on the same customer at once and silently rewrote every other field of the row."""
+    if not customer_id:
+        return
+    delta = int(Decimal(delta).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+    if delta:
+        Customer.objects.filter(pk=customer_id).update(total_debt=F('total_debt') + delta)
 
 
 class Customer(models.Model):
@@ -71,7 +86,9 @@ class Order(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.customer.name} - {self.cement_type.name} - {self.order_date}"
+        customer = self.customer.name if self.customer else "(mijoz o'chirilgan)"
+        cement = self.cement_type.name if self.cement_type else "(tur o'chirilgan)"
+        return f"{customer} - {cement} - {self.order_date}"
     
 
 class PaymentHistory(models.Model):
