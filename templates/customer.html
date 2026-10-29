@@ -33,7 +33,7 @@
                 <div class="flex justify-between items-center mb-8">
                     <h3 class="text-2xl font-bold text-gray-800">Mijozlar Ro'yxati</h3>
                     
-                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-bold text-sm shadow-lg">Ro'yxatni Yuklash</button>
+                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 font-bold text-sm shadow-lg">Ro'yxatni Yuklash</button>
                 </div>
                 <div class="mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -74,7 +74,7 @@
                         <td class="px-4 py-3 text-sm text-gray-900 cursor-pointer" onclick="window.location.href = `{% url 'dashboard' %}?customer_id={{ customer.id }}#invoice`">{{ customer.name }}</td>
                         <td class="px-4 py-3 text-sm text-gray-900 cursor-pointer" onclick="window.location.href = `{% url 'dashboard' %}?customer_id={{ customer.id }}#invoice`">{{ customer.phone }}</td>
                         <td class="px-4 py-3 text-sm text-gray-900 cursor-pointer" onclick="window.location.href = `{% url 'dashboard' %}?customer_id={{ customer.id }}#invoice`">{{ customer.address }}</td>
-                        <td class="px-4 py-3 text-sm {% if customer.total_debt <= 0 %}text-green-700{% else %}text-red-600 font-medium{% endif %}">
+                        <td class="px-4 py-3 text-sm {% if customer.total_debt <= 0 %}text-green-600{% else %}text-red-600 font-medium{% endif %}">
                             {{ customer.total_debt | format_currency }} so'm
                         </td>
                         <td class="hidden">{{ customer.id }}</td>

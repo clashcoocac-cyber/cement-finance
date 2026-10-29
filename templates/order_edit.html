@@ -55,7 +55,7 @@
         {% if messages %}
         <div class="mb-4 space-y-2">
             {% for message in messages %}
-            <div role="alert" class="rounded-lg border px-4 py-3 text-sm {% if message.level_tag == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-700{% endif %}">{{ message }}</div>
+            <div role="alert" class="rounded-lg border px-4 py-3 text-sm {% if message.level_tag == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-600{% endif %}">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
@@ -128,7 +128,7 @@
                                 <input type="text" id="remainingDebt" class="py-3 w-full p-4 border border-red-300 rounded-xl bg-red-50 text-red-800 font-bold shadow-sm text" readonly>
                             </div>
                             <div class="pt-4">
-                                <button type="submit" class="w-full mb-4 bg-gradient-to-r from-teal-600 to-green-600 text-white py-3 px-8 rounded-xl hover:from-teal-700 hover:to-green-700 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Saqlash</button>
+                                <button type="submit" class="w-full mb-4 bg-gradient-to-r from-teal-500 to-green-500 text-white py-3 px-8 rounded-xl hover:from-teal-500 hover:to-green-600 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Saqlash</button>
                                 <button type="button" onclick="window.location.href = `{% url 'dashboard' %}`" class="w-full mb-4 bg-gray-500 text-white py-3 px-8 rounded-xl hover:bg-gray-600 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">Bekor qilish</button>
                                 <div role="button" tabindex="0" onclick="if (confirm(`Buyurtmani o'chirmoqchimisiz? Mijozning qarzi shunga qarab o'zgaradi.`)) postTo(`{% url 'order_delete' order.id %}`)" class="cursor-pointer text-center w-full bg-red-600 text-white py-3 px-8 rounded-xl hover:bg-red-700 transition-all duration-300 font-semibold text shadow-lg hover:shadow-xl">O'chirish</div>
                             </div>
