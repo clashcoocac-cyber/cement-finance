@@ -148,20 +148,22 @@ class OrderView(LoginRequiredMixin, View):
         combined_data.sort(key=lambda x: x["order_date"])
         return combined_data
 
-    def _calculate_cumulative_debt(self, combined_data, customer):
-        """Calculate cumulative debt for each transaction"""
-        # Start with the customer's existing total debt
-        cumulative_debt = customer.total_debt
+    def _opening_balance(self, customer, date_from):
+        """What the customer owed just before `date_from` (or at the very start when there is no date)."""
+        balance = customer.default_debt   # the opening debt; manual corrections of the debt are folded into it
+        if date_from:
+            orders = Order.objects.filter(customer=customer, order_date__lt=date_from).aggregate(
+                total=models.Sum("remaining_debt"))["total"] or 0
+            paid = PaymentHistory.objects.filter(customer=customer, paid_at__date__lt=date_from).aggregate(
+                total=models.Sum("amount"))["total"] or 0
+            balance += orders - int(paid)
+        return balance
 
-        # Calculate total debt from current filtered transactions first
-        total_filtered_debt = sum(
-            item["remaining_debt"] for item in combined_data if item["type"] == "order"
-        ) - sum(
-            item["paid_amount"] for item in combined_data if item["type"] == "payment"
-        )
-
-        # Adjust cumulative debt to start from before these transactions
-        cumulative_debt = cumulative_debt - total_filtered_debt
+    def _calculate_cumulative_debt(self, combined_data, customer, date_from=None):
+        """Running balance after each line. It starts from the real balance before the period, so it is
+        right for any period (it used to count back from today's debt, which is only right when the period
+        ends today)."""
+        cumulative_debt = self._opening_balance(customer, date_from)
 
         for item in combined_data:
             if item["type"] == "order":
@@ -206,7 +208,7 @@ class OrderView(LoginRequiredMixin, View):
             )
 
             # Calculate cumulative debt for each transaction
-            combined_data = self._calculate_cumulative_debt(combined_data, customer)
+            combined_data = self._calculate_cumulative_debt(combined_data, customer, date_from)
 
             total_quantity = sum(
                 item["quantity"] for item in combined_data if item["type"] == "order"
@@ -538,24 +540,18 @@ class StatisticsView(LoginRequiredMixin, View):
     template_name = "stats.html"
 
     def get(self, request):
-        # Get year from query parameter, default to 2026
-        selected_year = request.GET.get("year", "2026")
-
+        today = date.today()
         try:
-            selected_year = int(selected_year)
+            selected_year = int(request.GET.get("year", today.year))
         except (ValueError, TypeError):
-            selected_year = 2026
+            selected_year = today.year
 
-        # Filter orders by year
+        first_order = Order.objects.order_by("order_date").first()
+        # the tabs always began at 2024; they now also grow with the calendar instead of stopping at 2026
+        first_year = min(2024, first_order.order_date.year if first_order else today.year, selected_year)
+        years = list(range(first_year, max(today.year, selected_year) + 1))
+
         orders = Order.objects.filter(order_date__year=selected_year)
-        customers = Customer.objects.all()
-
-        stats = {
-            "total_orders": orders.count(),
-            "total_revenue": sum(order.total_price for order in orders),
-            "total_debt": sum(customer.total_debt for customer in customers),
-            "total_quantity": sum(order.quantity for order in orders),
-        }
 
         most_cement_types = CementType.objects.annotate(
             total_quantity=models.Sum(
@@ -565,12 +561,12 @@ class StatisticsView(LoginRequiredMixin, View):
         ).order_by("-total_quantity")[:3]
 
         context = {
-            "total_orders": stats["total_orders"],
-            "total_revenue": stats["total_revenue"] - stats["total_debt"],
-            "total_debt": stats["total_debt"],
-            "total_quantity": stats["total_quantity"],
+            "total_orders": orders.count(),
+            "total_debt": Customer.objects.aggregate(total=models.Sum("total_debt"))["total"] or 0,
+            "total_quantity": orders.aggregate(total=models.Sum("quantity"))["total"] or 0,
             "most_cement_types": most_cement_types,
             "selected_year": selected_year,
+            "years": years,
             "page": "stats",
         }
 

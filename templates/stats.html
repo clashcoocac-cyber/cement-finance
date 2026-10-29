@@ -5,9 +5,9 @@
 <!-- Year Filter -->
 <div class="mb-8">
     <div class="flex gap-2">
-        <a href="{% url 'stats' %}?year=2024" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2024 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2024</a>
-        <a href="{% url 'stats' %}?year=2025" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2025 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2025</a>
-        <a href="{% url 'stats' %}?year=2026" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == 2026 %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">2026</a>
+        {% for year in years %}
+        <a href="{% url 'stats' %}?year={{ year }}" class="px-3 py-2 rounded text-sm font-medium {% if selected_year == year %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">{{ year }}</a>
+        {% endfor %}
     </div>
 </div>
 

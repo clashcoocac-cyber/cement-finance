@@ -205,3 +205,59 @@ class SettingsSafetyTests(TestCase):
         self.assertNotIn("django-insecure-nxg", source)
         self.assertIn("config('SECRET_KEY'", source)
         self.assertIn("config('DEBUG', default=False", source)
+
+
+class StatementBalanceTests(LedgerTestCase):
+    """The customer statement's running balance must be right for ANY period, not only one ending today."""
+
+    def setUp(self):
+        super().setUp()
+        import datetime
+        self.d = lambda n: datetime.date(2026, 1, 1) + datetime.timedelta(days=n)
+        # customer opens with a debt of 1000; three orders (remaining 500, 300, 200) and two payments
+        self.orders = []
+        for day, qty in ((10, 50), (40, 30), (70, 20)):
+            o = Order.objects.create(customer=self.customer, cement_type=self.cement, quantity=qty, price_per_kg=10,
+                                     road_cost=0, paid_amount=0, car_number="x")
+            Order.objects.filter(pk=o.pk).update(order_date=self.d(day))
+            self.orders.append(o)
+        for day, amount in ((20, 100), (60, 250)):
+            p = PaymentHistory.objects.create(customer=self.customer, payment_type="cash", amount=amount)
+            PaymentHistory.objects.filter(pk=p.pk).update(paid_at=f"{self.d(day)} 12:00:00+00:00")
+        Customer.objects.filter(pk=self.customer.pk).update(total_debt=1000 + 500 + 300 + 200 - 100 - 250)
+
+    def last_balance(self, date_from, date_to):
+        from finance.views import OrderView
+        view = OrderView()
+        orders = Order.objects.filter(customer=self.customer, order_date__gte=date_from, order_date__lte=date_to).order_by("order_date")
+        payments = view._get_payment_data(self.customer.pk, date_from, date_to)
+        customer = Customer.objects.get(pk=self.customer.pk)
+        rows = view._calculate_cumulative_debt(view._prepare_combined_data(orders, payments, customer), customer, date_from)
+        return rows[-1]["remaining_debt"] if rows else None
+
+    def test_a_period_ending_today_shows_the_current_debt(self):
+        self.assertEqual(self.last_balance(self.d(0), self.d(200)), 1650)
+
+    def test_an_early_period_shows_what_was_owed_then_not_todays_debt(self):
+        self.assertEqual(self.last_balance(self.d(0), self.d(45)), 1000 + 500 + 300 - 100)   # after order 2, payment 1
+        self.assertEqual(self.last_balance(self.d(0), self.d(15)), 1500)
+
+    def test_a_period_starting_midway_opens_with_the_balance_before_it(self):
+        # before day 30: 1000 + 500 - 100 = 1400; then order 2 (+300) and payment 2 (-250) and order 3 (+200)
+        self.assertEqual(self.last_balance(self.d(30), self.d(200)), 1400 + 300 - 250 + 200)
+
+
+class StatisticsYearTests(LedgerTestCase):
+    def test_defaults_to_the_current_year_and_offers_it_as_a_tab(self):
+        import datetime
+        year = datetime.date.today().year
+        response = self.client.get(reverse("stats"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["selected_year"], year)
+        self.assertIn(year, response.context["years"])
+        self.assertIn(2024, response.context["years"])
+        self.assertEqual(self.client.get(reverse("stats") + "?year=abc").status_code, 200)
+
+    def test_total_debt_is_the_sum_over_all_customers(self):
+        response = self.client.get(reverse("stats"))
+        self.assertEqual(response.context["total_debt"], 1000)
