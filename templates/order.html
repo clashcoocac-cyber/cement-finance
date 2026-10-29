@@ -155,7 +155,7 @@
                                 <td colspan="9" class="px-4 py-3 text-sm font-semibold text-gray-700">
                                     Boshlang'ich qoldiq{% if period_from %} <span class="font-normal text-gray-600">({{ period_from }} dan oldin)</span>{% else %} <span class="font-normal text-gray-600">(eski qarz)</span>{% endif %}
                                 </td>
-                                <td class="px-3 py-2.5 text-sm whitespace-nowrap text-right font-semibold {% if opening_balance > 0 %}text-red-700{% else %}text-green-600{% endif %}">{{ opening_balance|format_currency }}</td>
+                                <td class="px-3 py-2.5 text-sm whitespace-nowrap text-right font-semibold {% if opening_balance > 0 %}text-red-700{% else %}text-green-700{% endif %}">{{ opening_balance|format_currency }}</td>
                             </tr>
                             {% endif %}
                             {% for order in orders %}
@@ -174,7 +174,7 @@
                                             <div class="w-4 h-4 rounded-full border-2 border-gray-300" style="background-color: {{ order.cement_type.color }}"></div>
                                         </div>
                                         {% elif order.type == 'payment' %}
-                                        <span class="text-green-600 font-semibold">To'lov</span>
+                                        <span class="text-green-700 font-semibold">To'lov</span>
                                         {% endif %}
                                     </td>
                                     {% if order.type == 'order' %}
@@ -197,21 +197,21 @@
                                         {% if order.type == 'order' %}
                                             {{ order.road_cost|format_currency }}
                                         {% else %}
-                                            <span class="text-green-600">-</span>
+                                            <span class="text-green-700">-</span>
                                         {% endif %}
                                     </td>
                                     <td class="px-3 py-2.5 text-sm text-gray-900 whitespace-nowrap text-right">
                                         {% if order.type == 'order' %}
                                             {{ order.total_sum | format_currency }}
                                         {% else %}
-                                            <span class="text-green-600 font-semibold"></span>
+                                            <span class="text-green-700 font-semibold"></span>
                                         {% endif %}
                                     </td>
                                     <td class="px-3 py-2.5 text-sm text-gray-900 whitespace-nowrap text-right">
                                         {% if order.type == 'order' %}
                                             {{ order.paid_amount | format_currency }}
                                         {% else %}
-                                            <span class="{% if order.paid_amount < 0 %}text-red-700{% else %}text-green-600{% endif %} font-semibold">{{ order.paid_amount | format_currency }}</span>
+                                            <span class="{% if order.paid_amount < 0 %}text-red-700{% else %}text-green-700{% endif %} font-semibold">{{ order.paid_amount | format_currency }}</span>
                                         {% endif %}
                                     </td>
                                     {% if order.remaining_debt > 0 %}
@@ -219,7 +219,7 @@
                                             {{ order.remaining_debt | format_currency }}
                                     </td>
                                     {% elif order.remaining_debt <= 0 %}
-                                    <td class="px-3 py-2.5 text-sm whitespace-nowrap text-right text-green-600">
+                                    <td class="px-3 py-2.5 text-sm whitespace-nowrap text-right text-green-700">
                                             {{ order.remaining_debt | format_currency }}
                                     </td>
                                     {% endif %}
@@ -234,8 +234,8 @@
                                 <td class="px-3 py-3 text-right text-sm font-bold text-gray-800 whitespace-nowrap">{{total_quantity | format_currency}}</td>
                                 <td class="px-3 py-3 text-right text-sm font-bold text-gray-800"></td>
                                 <td class="px-3 py-3 text-right text-sm font-bold text-blue-600" id="totalTransportSum"></td>
-                                <td class="px-3 py-3 text-right text-sm font-bold text-green-600 whitespace-nowrap" id="totalGrandSum">{{ total_price|format_currency }}</td>
-                                <td class="px-3 py-3 text-right text-sm font-bold text-green-600 whitespace-nowrap" id="totalPaidSum">{{total_paid_amount|format_currency}}</td>
+                                <td class="px-3 py-3 text-right text-sm font-bold text-green-700 whitespace-nowrap" id="totalGrandSum">{{ total_price|format_currency }}</td>
+                                <td class="px-3 py-3 text-right text-sm font-bold text-green-700 whitespace-nowrap" id="totalPaidSum">{{total_paid_amount|format_currency}}</td>
                                     {% if customer %} 
                                     {% if customer.total_debt > 0 %}
                                                                     <td class="px-3 py-3 text-right text-sm font-bold text-red-700 whitespace-nowrap text-right" id="totalDebtSum" title="Mijozning hozirgi umumiy qarzi">
@@ -243,7 +243,7 @@
                                         {{ customer.total_debt|format_currency }}
                                                                     </td>
                                     {% else %}
-                                    <td class="px-3 py-3 text-right text-sm font-bold text-green-600 whitespace-nowrap" id="totalDebtSum">
+                                    <td class="px-3 py-3 text-right text-sm font-bold text-green-700 whitespace-nowrap" id="totalDebtSum">
 
                                         {{ customer.total_debt|format_currency }}
                                                                     </td>

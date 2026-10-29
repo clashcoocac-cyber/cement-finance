@@ -150,7 +150,7 @@
         {% if messages %}
         <div class="mb-4 space-y-2">
             {% for message in messages %}
-            <div role="alert" class="rounded-lg border px-4 py-3 text-sm {% if message.level_tag == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-600{% endif %}">{{ message }}</div>
+            <div role="alert" class="rounded-lg border px-4 py-3 text-sm {% if message.level_tag == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-700{% endif %}">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
