@@ -566,3 +566,14 @@ class StatementClarityTests(LedgerTestCase):
         html = self.page().content.decode()
         self.assertNotIn("Boshlang'ich qoldiq", html)
         self.assertNotIn("text-gray-1000", html)
+
+
+class CompactHeaderTests(LedgerTestCase):
+    def test_header_is_one_line_with_the_tabs_attached_below_it(self):
+        html = self.client.get(reverse("dashboard")).content.decode()
+        self.assertIn("Sement Savdo Tizimi</h1>", html)
+        self.assertNotIn("Buyurtmalar va Hisobotlar", html)
+        self.assertIn("rounded-t-2xl", html)
+        self.assertIn("rounded-t-none rounded-b-2xl", html)
+        for label in ("Buyurtmalar", "Mijozlar", "Qarzlar", "Sement Turlari", "Statistika"):
+            self.assertIn(label, html)
