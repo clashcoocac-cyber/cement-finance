@@ -409,7 +409,7 @@ class CritiqueFixTests(LedgerTestCase):
 
     def test_login_and_edit_pages_use_the_same_font_as_the_rest(self):
         login = Client().get(reverse("login")).content.decode()
-        self.assertIn("Onest", login)
+        self.assertIn("Inter", login)
         self.assertNotIn("Mona", login)
         self.new_order()
         order = Order.objects.get()
