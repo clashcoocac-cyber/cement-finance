@@ -1,9 +1,9 @@
+*.env.impeccable/
+*.log
+*.pyc
+*.pyd
+*.pyo
 __pycache__/
+db.sqlite3
 env/
 static/
-db.sqlite3
-*.pyc
-*.pyo
-*.pyd
-*.log
-*.env
