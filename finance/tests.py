@@ -527,3 +527,42 @@ class OrderEntryKeepsTheWorkTests(LedgerTestCase):
         self.assertEqual(PaymentHistory.objects.count(), 0)
         follow = self.client.get(reverse("debts"))
         self.assertContains(follow, "Mijozni ro&#x27;yxatdan tanlang.")
+
+
+class StatementClarityTests(LedgerTestCase):
+    def page(self, **params):
+        return self.client.get(reverse("dashboard"), params)
+
+    def test_statement_names_the_balance_column_and_starts_with_an_opening_row(self):
+        self.new_order()
+        html = self.page(customer_id=self.customer.pk).content.decode()
+        self.assertRegex(html, r">\s*Qoldiq\s*<")
+        self.assertIn("Boshlang'ich qoldiq", html)
+        self.assertIn("(eski qarz)", html)
+        self.assertIn("Pastdagi qarz", html)
+
+    def test_opening_row_shows_the_balance_before_the_period(self):
+        from datetime import date, timedelta
+        old = date.today() - timedelta(days=30)
+        self.new_order(road_cost=0, paid_amount=0)
+        Order.objects.update(order_date=old)   # order_date is set automatically on save
+        response = self.page(customer_id=self.customer.pk, date_from=date.today().isoformat())
+        self.assertEqual(response.context["opening_balance"], self.customer.default_debt + 1000)
+        self.assertContains(response, "dan oldin)")
+
+    def test_date_inputs_are_empty_for_a_statement_without_dates(self):
+        html = self.page(customer_id=self.customer.pk).content.decode()
+        self.assertRegex(html, r'value="" name="date_from"')
+        plain = self.page().content.decode()
+        self.assertNotRegex(plain, r'value="" name="date_from"')
+
+    def test_a_negative_payment_is_red_in_the_statement(self):
+        self.pay(-300)
+        html = self.page(customer_id=self.customer.pk).content.decode()
+        self.assertIn("text-red-700 font-semibold", html)
+
+    def test_the_orders_list_without_a_customer_keeps_the_qarz_header_and_has_no_opening_row(self):
+        self.new_order()
+        html = self.page().content.decode()
+        self.assertNotIn("Boshlang'ich qoldiq", html)
+        self.assertNotIn("text-gray-1000", html)

@@ -214,6 +214,7 @@ class OrderView(LoginRequiredMixin, View):
         ).qs
 
         customer = None
+        opening_balance = None
         if request.GET.get("customer_id"):
             try:
                 customer = Customer.objects.get(id=request.GET.get("customer_id"))
@@ -232,6 +233,7 @@ class OrderView(LoginRequiredMixin, View):
 
             # Calculate cumulative debt for each transaction
             combined_data = self._calculate_cumulative_debt(combined_data, customer, date_from)
+            opening_balance = self._opening_balance(customer, date_from)
 
             total_quantity = sum(
                 item["quantity"] for item in combined_data if item["type"] == "order"
@@ -301,6 +303,8 @@ class OrderView(LoginRequiredMixin, View):
             "total_debt": total_debt,
             "page": "dashboard",
             "customer": customer,
+            "opening_balance": opening_balance,
+            "period_from": query_params.get("date_from") if customer else None,
             "submitted": submitted,
             "errors": errors,
             "submitted_customer": (
