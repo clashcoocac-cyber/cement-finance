@@ -261,3 +261,10 @@ class StatisticsYearTests(LedgerTestCase):
     def test_total_debt_is_the_sum_over_all_customers(self):
         response = self.client.get(reverse("stats"))
         self.assertEqual(response.context["total_debt"], 1000)
+
+
+class StatisticsLabelTests(LedgerTestCase):
+    def test_the_debt_card_says_it_is_the_current_state_not_the_selected_year(self):
+        html = self.client.get(reverse("stats") + "?year=2025").content.decode()
+        self.assertIn("Jami Qarzlar", html)
+        self.assertIn("(hozirgi holat)", html)
