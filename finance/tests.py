@@ -268,3 +268,37 @@ class StatisticsLabelTests(LedgerTestCase):
         html = self.client.get(reverse("stats") + "?year=2025").content.decode()
         self.assertIn("Jami Qarzlar", html)
         self.assertIn("(hozirgi holat)", html)
+
+
+class PolishTests(LedgerTestCase):
+    def test_amounts_use_non_breaking_spaces_so_they_never_wrap(self):
+        from finance.templatetags.custom_filters import format_currency
+        self.assertEqual(format_currency(40000000), "40 000 000")
+        self.assertEqual(format_currency(-1500), "-1 500")
+
+    def test_order_list_shows_dd_mm_yyyy_on_one_line_and_uses_the_uzbek_date_picker(self):
+        self.new_order()
+        html = self.client.get(reverse("dashboard") + "?date_from=2000-01-01&date_to=2999-12-31").content.decode()
+        order = Order.objects.get()
+        self.assertIn(order.order_date.strftime("%d.%m.%Y"), html)
+        self.assertNotIn('type="date"', html)
+        self.assertEqual(html.count("data-uz-date"), 2 + html.count("input[data-uz-date]"))
+        # the filter script reads these ids, so they must stay on the real inputs
+        self.assertIn('id="filterDateFrom"', html)
+        self.assertIn('id="filterDateTo"', html)
+
+    def test_debt_page_dates_and_amounts(self):
+        self.pay("5000000")
+        html = self.client.get(reverse("debts")).content.decode()
+        payment = PaymentHistory.objects.get()
+        self.assertIn(payment.paid_at.astimezone().strftime("%d.%m.%Y"), html)
+        self.assertNotRegex(html, r"\d{4}-\d{2}-\d{2}\s*<span")           # the old yyyy-mm-dd + time layout
+        self.assertIn("5 000 000&nbsp;so'm", html)
+        self.assertNotIn('type="date"', html)
+        self.assertIn('<label class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>', html)
+
+    def test_cement_type_month_filter_is_an_uzbek_select(self):
+        html = self.client.get(reverse("cement_type") + "?month=2026-10").content.decode()
+        self.assertIn('<select onchange="setFilter()" name="month" id="filterMonth" data-selected="2026-10"', html)
+        self.assertNotIn('type="month"', html)
+        self.assertIn("'Oktabr'", html)

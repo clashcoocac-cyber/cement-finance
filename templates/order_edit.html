@@ -36,7 +36,7 @@
             <div class="modern-card rounded-2xl p-8 mb-8 card-hover">
                 <h2 class="text-2xl font-bold text-blue-800 mb-2">Buyurtma O'zgaritish</h2>
                 <p class="mb-8 text-sm">
-                    <span class="text-gray-600">{{ order.order_date|date:"d-m-Y" }}</span> /
+                    <span class="text-gray-600">{{ order.order_date|date:"d.m.Y" }}</span> /
                     {{ order.customer.name }} / {{ order.cement_type.name }}
                 </p>
                 <form action="{% url 'order_edit' order.id %}" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">

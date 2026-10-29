@@ -9,6 +9,7 @@ def format_currency(value):
         return ''
     try:
         value = float(value)
-        return '{:,.0f}'.format(value).replace(',', ' ')
+        # non-breaking spaces: an amount must never wrap onto two lines
+        return '{:,.0f}'.format(value).replace(',', '\u00a0')
     except (ValueError, TypeError):
         return value

@@ -10,7 +10,7 @@
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-800 mb-3">Mijoz</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mijoz</label>
                     <div class="relative">
                         <input value="{{ order.customer.name }}" type="text" required id="clientSearch" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm" placeholder="Mijoz qidirish..." oninput="searchClients()" onfocus="showClientDropdown()" onblur="hideClientDropdown()">
                         <div id="clientDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
@@ -71,11 +71,11 @@
                         </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Sana (dan)</label>
-                        <input onchange="setFilter()" value="{{ date_from }}" type="date" id="filterDebtDateFrom" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
+                        <input onchange="setFilter()" value="{{ date_from }}" type="text" data-uz-date id="filterDebtDateFrom" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Sana (gacha)</label>
-                        <input onchange="setFilter()" value="{{ date_to }}" type="date" id="filterDebtDateTo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
+                        <input onchange="setFilter()" value="{{ date_to }}" type="text" data-uz-date id="filterDebtDateTo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all duration-300 text-sm" onchange="filterDebtPayments()">
                     </div>
                 </div>
         <div class="overflow-x-auto">
@@ -93,12 +93,12 @@
                 <tbody id="debtPaymentsTable" class="divide-y divide-gray-300 font-medium">
                     {% for payment in payments %}
             <tr>
-                <td class="px-6 py-4 text-sm text-gray-900">
-                    {{ payment.paid_at | date:"Y-m-d" }}
+                <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                    {{ payment.paid_at | date:"d.m.Y" }}
                     <span class="ms-3">{{ payment.paid_at | time:"H:i" }}</span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.customer.name }}</td>
-                <td class="px-6 py-4 text-sm text-green-600 font-medium">{{ payment.amount | format_currency }} so'm</td>
+                <td class="px-6 py-4 text-sm text-green-600 font-medium whitespace-nowrap">{{ payment.amount | format_currency }}&nbsp;so'm</td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">
                     {% if payment.comment %}
