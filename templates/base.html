@@ -7,8 +7,9 @@
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..800&display=swap');
-            body { font-family: 'Golos Text', system-ui, sans-serif; }
+            @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400..700&family=Inter:wght@400..700&display=swap');
+            /* Public Sans has no Cyrillic: customer names fall back, glyph by glyph, to Inter */
+            body { font-family: 'Public Sans', 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
             .modern-card {
                 background: white;
                 border: 1px solid #e5e7eb;
@@ -111,7 +112,7 @@
     <div class="max-w-7xl mx-auto px-6 pt-5 pb-6">
         <!-- Header: one line, stuck to the top, the tab bar attached right below it -->
         <div class="gradient-bg rounded-t-2xl shadow-lg px-8 py-4 text-white">
-            <h1 class="text-2xl font-bold tracking-tight">Sement Savdo Tizimi</h1>
+            <h1 class="text-2xl font-semibold tracking-tight">Sement Savdo Tizimi</h1>
         </div>
 
         <!-- Navigation Tabs -->

@@ -409,7 +409,7 @@ class CritiqueFixTests(LedgerTestCase):
 
     def test_login_and_edit_pages_use_the_same_font_as_the_rest(self):
         login = Client().get(reverse("login")).content.decode()
-        self.assertIn("Golos Text", login)
+        self.assertIn("Public Sans", login)
         self.assertNotIn("Mona", login)
         self.new_order()
         order = Order.objects.get()
@@ -592,9 +592,9 @@ class FontTests(LedgerTestCase):
         import pathlib
         for name in ("base.html", "login.html", "order_edit.html"):
             source = pathlib.Path("templates", name).read_text()
-            self.assertIn("family=Golos+Text", source, name)
+            self.assertIn("family=Public+Sans", source, name)
+            self.assertIn("family=Inter", source, name)   # Public Sans has no Cyrillic
             self.assertNotIn("Onest", source, name)
-            self.assertNotIn("Inter", source, name)
 
 
 class DebtHistoryLayoutTests(LedgerTestCase):
@@ -604,3 +604,14 @@ class DebtHistoryLayoutTests(LedgerTestCase):
         self.assertIn("line-clamp-2", html)
         self.assertNotIn("max-w-xs truncate", html)
         self.assertIn("px-3 py-1 text-sm whitespace-nowrap", html)
+
+
+class FontWeightTests(LedgerTestCase):
+    def test_weights_are_calmer_regular_table_body_semibold_heads_nothing_above_bold(self):
+        import pathlib, re
+        for path in pathlib.Path("templates").glob("*.html"):
+            source = path.read_text()
+            self.assertNotRegex(source, r"font-(extrabold|black)", path.name)
+            self.assertNotRegex(source, r"<tbody[^>]* font-medium", path.name)
+            self.assertNotRegex(source, r"<th[^>]*font-bold", path.name)
+            self.assertNotRegex(source, r"<h[1-3][^>]*font-bold", path.name)

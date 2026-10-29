@@ -5,7 +5,7 @@
         <div id="ordersContent" class="tab-content">
             <!-- Add New Order -->
             <div class="modern-card rounded-2xl p-6 mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Yangi Buyurtma Qo'shish</h2>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Yangi Buyurtma Qo'shish</h2>
                 <form id="orderForm" action="{% url 'dashboard' %}" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8" novalidate>
                     {% csrf_token %}
                     <!-- Left side - Input fields -->
@@ -64,7 +64,7 @@
                     <!-- Right side - Calculations -->
                     <div class="lg:col-span-1">
                         <div class="bg-gray-50 rounded-xl p-6 space-y-4">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4">Hisob-kitob</h3>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Hisob-kitob</h3>
                             <div>
                                 <label for="grandTotal" class="block text-sm font-medium text-gray-800 mb-3">Jami Summa</label>
                                 <input type="text" id="grandTotal" class="py-3 w-full p-4 border border-blue-300 rounded-xl bg-blue-50 text-blue-800 font-bold shadow-sm text" readonly>
@@ -83,7 +83,7 @@
 
             <!-- Filters -->
             <div class="modern-card rounded-2xl p-6 mb-8">
-                <h3 class="text-2xl font-bold text-gray-800 mb-8">Filterlar</h3>
+                <h3 class="text-2xl font-semibold text-gray-800 mb-8">Filterlar</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
                             <label for="filterClientNameSearch" class="block text-sm font-medium text-gray-700 mb-1">Mijoz nomi bo'yicha</label>
@@ -116,7 +116,7 @@
             <!-- Orders List -->
             <div id="invoice" class="modern-card rounded-2xl p-6">
                 <div id="orderList" class="flex justify-between items-center mb-8">
-                    <h3 class="text-2xl font-bold text-gray-800">
+                    <h3 class="text-2xl font-semibold text-gray-800">
                         Buyurtmalar Ro'yxati
                         {% if customer %}
                         <br>
@@ -128,7 +128,7 @@
                         {% endif %}
                     </h3>
                     
-                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-2xl text-sm hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 font-semibold">Hisobotni Yuklash</button>
+                    <button onclick="generatePDF()" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-2xl text-sm hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 font-semibold">Hisobotni Yuklash</button>
                 </div>
                 {% if customer %}
                 <p class="mb-4 text-sm text-gray-600">Qoldiq &mdash; shu qatordan keyin mijozning qarzi. Pastdagi qarz &mdash; mijozning hozirgi umumiy qarzi.</p>
@@ -137,19 +137,19 @@
                     <table class="w-full table-auto">
                         <thead class="bg-slate-100">
                             <tr>
-                                <th class="px-3 py-3 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana</th>
-                                <th class="px-3 py-3 text-left text-sm font-bold text-gray-800">Mijoz</th>
-                                <th class="px-3 py-3 text-left text-sm font-bold text-gray-800">Turi</th>
-                                <th class="px-3 py-3 text-left text-sm font-bold text-gray-800">Mashina</th>
-                                <th class="px-3 py-3 text-right text-sm font-bold text-gray-800">Miqdori</th>
-                                <th class="px-3 py-3 text-right text-sm font-bold text-gray-800">Narxi</th>
-                                <th class="px-3 py-3 text-right text-sm font-bold text-gray-800">Yo'l Xarajati</th>
-                                <th class="px-3 py-3 text-right text-sm font-bold text-gray-800">Jami</th>
-                                <th class="px-3 py-3 text-right text-sm font-bold text-gray-800">Olingan</th>
-                                <th class="px-3 py-3 text-right text-sm font-bold text-gray-800">{% if customer %}Qoldiq{% else %}Qarz{% endif %}</th>
+                                <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800 rounded-tl-2xl">Sana</th>
+                                <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800">Mijoz</th>
+                                <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800">Turi</th>
+                                <th class="px-3 py-3 text-left text-sm font-semibold text-gray-800">Mashina</th>
+                                <th class="px-3 py-3 text-right text-sm font-semibold text-gray-800">Miqdori</th>
+                                <th class="px-3 py-3 text-right text-sm font-semibold text-gray-800">Narxi</th>
+                                <th class="px-3 py-3 text-right text-sm font-semibold text-gray-800">Yo'l Xarajati</th>
+                                <th class="px-3 py-3 text-right text-sm font-semibold text-gray-800">Jami</th>
+                                <th class="px-3 py-3 text-right text-sm font-semibold text-gray-800">Olingan</th>
+                                <th class="px-3 py-3 text-right text-sm font-semibold text-gray-800">{% if customer %}Qoldiq{% else %}Qarz{% endif %}</th>
                             </tr>
                         </thead>
-                                                <tbody id="ordersTable" class="divide-y divide-gray-300 font-medium">
+                                                <tbody id="ordersTable" class="divide-y divide-gray-300">
                             {% if customer %}
                             <tr class="bg-slate-50">
                                 <td colspan="9" class="px-4 py-3 text-sm font-semibold text-gray-700">

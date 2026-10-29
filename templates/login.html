@@ -7,8 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..800&display=swap');
-        body { font-family: 'Golos Text', system-ui, sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400..700&family=Inter:wght@400..700&display=swap');
+        /* Public Sans has no Cyrillic: customer names fall back, glyph by glyph, to Inter */
+            body { font-family: 'Public Sans', 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
         .modern-card {
             background: white;
             border: 1px solid #e5e7eb;
@@ -31,7 +32,7 @@
 <!-- Login Screen -->
 <div id="loginScreen" class="min-h-screen flex items-center justify-center">
     <div class="modern-card rounded-2xl p-8 w-full max-w-md">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Tizimga Kirish</h2>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Tizimga Kirish</h2>
         {% if form.non_field_errors %}
         <div role="alert" class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
@@ -47,7 +48,7 @@
                 <label for="field-password" class="block text-sm font-medium text-gray-700 mb-1">Parol</label>
                 <input id="field-password" type="password" name="password" autocomplete="current-password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-300 text-sm" placeholder="Parol kiriting">
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-bold text-sm shadow-lg hover:shadow-xl">Kirish</button>
+            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold text-sm shadow-lg hover:shadow-xl">Kirish</button>
         </form>
     </div>
 </div>
