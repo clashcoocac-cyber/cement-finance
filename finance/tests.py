@@ -409,7 +409,7 @@ class CritiqueFixTests(LedgerTestCase):
 
     def test_login_and_edit_pages_use_the_same_font_as_the_rest(self):
         login = Client().get(reverse("login")).content.decode()
-        self.assertIn("Inter", login)
+        self.assertIn("Golos Text", login)
         self.assertNotIn("Mona", login)
         self.new_order()
         order = Order.objects.get()
@@ -588,9 +588,19 @@ class NumeralWidthTests(LedgerTestCase):
 
 
 class FontTests(LedgerTestCase):
-    def test_every_page_family_uses_inter_which_covers_latin_and_cyrillic_names(self):
+    def test_every_page_family_uses_a_font_with_latin_and_cyrillic(self):
         import pathlib
         for name in ("base.html", "login.html", "order_edit.html"):
             source = pathlib.Path("templates", name).read_text()
-            self.assertIn("family=Inter", source, name)
+            self.assertIn("family=Golos+Text", source, name)
             self.assertNotIn("Onest", source, name)
+            self.assertNotIn("Inter", source, name)
+
+
+class DebtHistoryLayoutTests(LedgerTestCase):
+    def test_comments_are_capped_to_two_lines_and_actions_are_not_clipped(self):
+        self.pay(500, comment="x " * 200)
+        html = self.client.get(reverse("debts")).content.decode()
+        self.assertIn("line-clamp-2", html)
+        self.assertNotIn("max-w-xs truncate", html)
+        self.assertIn("px-3 py-1 text-sm whitespace-nowrap", html)

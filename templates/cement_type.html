@@ -67,14 +67,14 @@
                         <tbody id="cementTable" class="divide-y divide-gray-200 font-medium">
                             {% for cement_type in cement_types %}
                                 <tr>
-                        <td class="px-4 py-3 text-sm text-gray-900">{{ cement_type.name }}</td>
-                        <td class="px-4 py-3 text-sm">
+                        <td class="px-3 py-2.5 text-sm text-gray-900">{{ cement_type.name }}</td>
+                        <td class="px-3 py-2.5 text-sm">
                             <div class="flex items-center space-x-2">
                                 <div class="w-6 h-6 rounded-full border-2 border-gray-300" style="background-color: {{ cement_type.color }}"></div>
                                 <span class="text-gray-700">{{ cement_type.get_color_display }}</span>
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-sm"> {{ cement_type.total_quantity | default:0 | format_currency }}</td>
+                        <td class="px-3 py-2.5 text-sm"> {{ cement_type.total_quantity | default:0 | format_currency }}</td>
                     </tr>
                             {% empty %}
                                 <tr>
@@ -84,9 +84,9 @@
                         </tbody>
                         <tfoot class="bg-slate-100">
                             <tr>
-                                <td class="px-4 py-4 text-sm font-bold text-gray-900">Jami:</td>
+                                <td class="px-3 py-3 text-sm font-bold text-gray-900">Jami:</td>
                                 <td></td>
-                                <td class="px-4 py-4 text-sm font-semibold text-green-600" id="totalDebtPayments">{{ total_quantity | format_currency }} kg</td>
+                                <td class="px-3 py-3 text-sm font-semibold text-green-600" id="totalDebtPayments">{{ total_quantity | format_currency }} kg</td>
                             </tr>
                         </tfoot>
                     </table>

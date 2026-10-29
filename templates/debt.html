@@ -85,35 +85,35 @@
             <table class="w-full table-auto">
                 <thead class="bg-slate-100">
                     <tr>
-                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana / Vaqt</th>
-                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Mijoz</th>
-                        <th class="px-6 py-5 text-right text-sm font-bold text-gray-800">To'langan Summa</th>
-                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">To'lov turi</th>
-                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Izoh</th>
-                        <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Amallar</th>
+                        <th class="px-3 py-3 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana / Vaqt</th>
+                        <th class="px-3 py-3 text-left text-sm font-bold text-gray-800">Mijoz</th>
+                        <th class="px-3 py-3 text-right text-sm font-bold text-gray-800">To'langan Summa</th>
+                        <th class="px-3 py-3 text-left text-sm font-bold text-gray-800">To'lov turi</th>
+                        <th class="px-3 py-3 text-left text-sm font-bold text-gray-800">Izoh</th>
+                        <th class="px-3 py-3 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Amallar</th>
                     </tr>
                 </thead>
                 <tbody id="debtPaymentsTable" class="divide-y divide-gray-300 font-medium">
                     {% for payment in payments %}
             <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                <td class="px-3 py-2.5 text-sm text-gray-900 whitespace-nowrap">
                     {{ payment.paid_at | date:"d.m.Y" }}
                     <span class="ms-3">{{ payment.paid_at | time:"H:i" }}</span>
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-900">{{ payment.customer.name }}</td>
-                <td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-right {% if payment.amount < 0 %}text-red-700{% else %}text-green-600{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
-                <td class="px-6 py-4 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-900">
+                <td class="px-3 py-2.5 text-sm text-gray-900">{{ payment.customer.name }}</td>
+                <td class="px-3 py-2.5 text-sm font-medium whitespace-nowrap text-right {% if payment.amount < 0 %}text-red-700{% else %}text-green-600{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
+                <td class="px-3 py-2.5 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
+                <td class="px-3 py-2.5 text-sm text-gray-900">
                     {% if payment.comment %}
-                        <div class="max-w-xs truncate" title="{{ payment.comment }}">{{ payment.comment }}</div>
+                        <div class="max-w-[18rem] break-words line-clamp-2 leading-snug" title="{{ payment.comment }}">{{ payment.comment }}</div>
                     {% else %}
                         <span class="text-gray-500">-</span>
                     {% endif %}
                 </td>
                 
-                <td class="px-6 py-2 text-sm">
-                    <div class="flex space-x-2">
-                        <a href="{% url 'payment_edit' payment.id %}" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200 flex items-center space-x-1">
+                <td class="px-3 py-1 text-sm whitespace-nowrap">
+                    <div class="flex space-x-1">
+                        <a href="{% url 'payment_edit' payment.id %}" class="text-blue-600 hover:text-blue-800 px-2 py-1.5 rounded-lg hover:bg-blue-50 transition-all duration-200 flex items-center space-x-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
