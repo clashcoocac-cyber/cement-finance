@@ -83,11 +83,11 @@
                 </div>
         <div class="overflow-x-auto">
             <table class="w-full table-auto">
-                <thead class="bg-slate-100">
+                <thead class="bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl">
                     <tr>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tl-2xl">Sana / Vaqt</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Mijoz</th>
-                        <th class="px-6 py-5 text-right text-sm font-bold text-gray-800">To'langan Summa</th>
+                        <th class="px-6 py-5 text-sm font-bold text-gray-800">To'langan Summa</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">To'lov turi</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800">Izoh</th>
                         <th class="px-6 py-5 text-left text-sm font-bold text-gray-800 rounded-tr-2xl">Amallar</th>
@@ -101,7 +101,7 @@
                     <span class="ms-3">{{ payment.paid_at | time:"H:i" }}</span>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-900">{{ payment.customer.name }}</td>
-                <td class="px-4 py-3 text-sm font-medium whitespace-nowrap text-right {% if payment.amount < 0 %}text-red-700{% else %}text-green-700{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
+                <td class="px-4 py-3 text-sm font-medium whitespace-nowrap {% if payment.amount < 0 %}text-red-700{% else %}text-green-700{% endif %}">{{ payment.amount | format_currency }}&nbsp;so'm{% if payment.amount < 0 %}<span class="block text-xs font-normal text-gray-600">mijozga berilgan pul</span>{% endif %}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">{{ payment.get_payment_type_display|default:'-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">
                     {% if payment.comment %}
@@ -135,10 +135,10 @@
                         </tr>
                     {% endif %}
         </tbody>
-        <tfoot class="bg-slate-100">
+        <tfoot class="bg-gradient-to-r from-green-100 to-emerald-100">
                             <tr>
                                 <td colspan="2" class="px-6 py-5 text-sm font-bold text-gray-800">JAMI:</td>
-                                <td class="px-6 py-5 text-sm font-bold text-green-700 text-right whitespace-nowrap" id="totalDebtPayments">{{ total_amount | format_currency }} so'm</td>
+                                <td class="px-6 py-5 text-sm font-bold text-green-700 whitespace-nowrap" id="totalDebtPayments">{{ total_amount | format_currency }} so'm</td>
                                 <td colspan="3" class="px-6 py-5 text-sm font-bold text-gray-800"></td>
                             </tr>
                         </tfoot>

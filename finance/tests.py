@@ -382,12 +382,13 @@ class CritiqueFixTests(LedgerTestCase):
             classes = " ".join(re.findall(r'class="([^"]*)"', html))
             self.assertNotIn("glass-card", classes, url)
             self.assertNotIn("card-hover", classes, url)
-            self.assertNotIn("from-green-100", classes, url)
 
-    def test_money_columns_are_right_aligned(self):
+    def test_tables_keep_their_original_head_colours_and_left_aligned_amounts(self):
         self.new_order()
         html = self.client.get(reverse("dashboard") + "?date_from=2000-01-01&date_to=2999-12-31").content.decode()
-        self.assertGreaterEqual(html.count("text-right"), 6)
+        self.assertIn("from-indigo-100 to-purple-100", html)
+        table = html[html.index("<table"):html.index("</table>")]
+        self.assertNotIn("text-right", table)
 
     # --- accessibility ---------------------------------------------------------------------------------------
     def test_every_label_points_at_a_real_field_and_no_id_is_used_twice(self):
