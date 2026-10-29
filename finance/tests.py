@@ -585,3 +585,12 @@ class NumeralWidthTests(LedgerTestCase):
         import pathlib
         for path in pathlib.Path("templates").glob("*.html"):
             self.assertNotIn("tabular-nums", path.read_text(), path.name)
+
+
+class FontTests(LedgerTestCase):
+    def test_every_page_family_uses_inter_which_covers_latin_and_cyrillic_names(self):
+        import pathlib
+        for name in ("base.html", "login.html", "order_edit.html"):
+            source = pathlib.Path("templates", name).read_text()
+            self.assertIn("family=Inter", source, name)
+            self.assertNotIn("Onest", source, name)
